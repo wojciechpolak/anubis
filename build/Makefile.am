@@ -2,7 +2,7 @@
 ## build/Makefile.am
 ##
 ## This file is part of GNU Anubis.
-## Copyright (C) 2001-2014 The Anubis Team.
+## Copyright (C) 2001-2020 The Anubis Team.
 ##
 ## GNU Anubis is free software; you can redistribute it and/or modify it
 ## under the terms of the GNU General Public License as published by the
@@ -18,7 +18,6 @@
 ## with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-SUBDIRS = guile-1.6
 EXTRA_DIST = keygen.sh specgen.sh cflow.rc
 
 ## EOF

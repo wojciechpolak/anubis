@@ -1,9 +1,16 @@
-GNU Anubis NEWS -- history of user-visible changes. 2014-05-23
-Copyright (C) 2001-2014 The Anubis Team.
+GNU Anubis NEWS -- history of user-visible changes. 2020-06-06
+Copyright (C) 2001-2020 The Anubis Team.
 
 See the end of file for copying conditions.
 Please send your bug reports to <bug-anubis@gnu.org>.
+
+* Version 4.2.90 (Git)
 
+** Fix compilation with GDBM 1.18.1
+
+* Support for Guile version 2.2.0 and later
+
+Support for prior versions has been withdrawn.
 
 * Version 4.2, 2014-05-23
 
@@ -506,7 +513,7 @@ translations.
 
  Copyright information:
 
- Copyright (C) 2001, 2002, 2003, 2004, 2007, 2008 The Anubis Team.
+ Copyright (C) 2001-2020 The Anubis Team.
 
  Permission is granted to anyone to make or distribute verbatim copies
  of this document as received, in any medium, provided that the
