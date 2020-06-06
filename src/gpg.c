@@ -237,7 +237,9 @@ create_key_array(gpgme_ctx_t ctx, struct obstack *stk)
 	      if (err)
 		break;
 
-	      gpgme_get_key (ctx, current_key, &tmpkey, 0);
+	      err = gpgme_get_key (ctx, current_key, &tmpkey, 0);
+	      if (err)
+		break;
 	      obstack_grow (stk, &tmpkey, sizeof (tmpkey));
 	      if (options.termlevel == DEBUG)
 		{
@@ -248,14 +250,23 @@ create_key_array(gpgme_ctx_t ctx, struct obstack *stk)
 			     uid->uid, uid->name, uid->email);
 		}
 	    }
-	  if (gpg_err_code (err) != GPG_ERR_EOF)
+
+	  switch (gpg_err_code (err))
 	    {
+	    case GPG_ERR_EOF:
+	      break;
+
+	    case GPG_ERR_INV_VALUE:
+	      fprintf (stderr, "key not found: %s\n", current_key);
+	      exit (1);
+
+	    default:
 	      fprintf (stderr, "cannot list keys: %s\n",
 		       gpgme_strerror (err));
 	      exit (1);
 	    }
 	  
-	  memset (current_key, 0, sizeof (current_key));
+	  memset (current_key, 0, j);
 	  j = 0;
 	}
       else

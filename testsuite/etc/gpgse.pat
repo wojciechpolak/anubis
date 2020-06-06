@@ -22,7 +22,7 @@
 :RETCODE 0
 :PATTERN
 :EXPECT 220
-HELO localhost		
+HELO localhost
 :EXPECT 250
 MAIL FROM:<polak@gnu.org>
 :EXPECT 250
@@ -32,10 +32,10 @@ DATA
 :EXPECT 354
 From: <polak@gnu.org>
 To: <gray@gnu.org>
-:DEL Subject: gpg-se test@@se:anubis:anubis
+:DEL Subject: gpg-se test@@se:anubis-dev:anubis-dev
 :ADD Subject: gpg-se test
-:ADD X-GPG-Comment1: Encrypted for anubis
-:ADD X-GPG-Comment2: Signed by anubis
+:ADD X-GPG-Comment1: Encrypted for anubis-dev
+:ADD X-GPG-Comment2: Signed by anubis-dev
 
 :DEL If you can read this, then it is working.
 :ADD -re -----BEGIN PGP MESSAGE-----.*-----END PGP MESSAGE-----

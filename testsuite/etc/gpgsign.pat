@@ -32,9 +32,9 @@ DATA
 :EXPECT 354
 From: <gray@gnu.org>
 To: <polak@gnu.org>
-:DEL Subject: Signing messages@@sign:anubis
+:DEL Subject: Signing messages@@sign:anubis-dev
 :ADD Subject: Signing messages
-:ADD X-GPG-Comment: Signed by anubis
+:ADD X-GPG-Comment: Signed by anubis-dev
 
 :ADD -----BEGIN PGP SIGNED MESSAGE-----
 :ADD Hash: SHA1

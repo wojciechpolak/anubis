@@ -32,9 +32,9 @@ DATA
 :EXPECT 354
 From: <gray@gnu.org>
 To: <polak@gnu.org>
-:DEL Subject: Does it work?@@encrypt:anubis
+:DEL Subject: Does it work?@@encrypt:anubis-dev
 :ADD Subject: Does it work?
-:ADD X-GPG-Comment: Encrypted for anubis
+:ADD X-GPG-Comment: Encrypted for anubis-dev
 
 :DEL If you can read this, then it is working.
 :ADD -re -----BEGIN PGP MESSAGE-----.*-----END PGP MESSAGE-----

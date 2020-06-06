@@ -435,7 +435,7 @@ smtp_reply (int code, char *fmt, ...)
   rc = _mta_write (out, obuf, n, NULL);
   if (rc)
     {
-      fprintf (stderr, "Write failed: %s", _mta_strerror (rc));
+      fprintf (stderr, "Write failed: %s\n", _mta_strerror (rc));
       abort ();
     }
 }
@@ -451,7 +451,7 @@ get_input_line (char *buf, size_t bufsize)
       rc = _mta_read (in, buf + i, 1, &n);
       if (rc)
 	{
-	  fprintf (stderr, "Read failed: %s", _mta_strerror (rc));
+	  fprintf (stderr, "Read failed: %s\n", _mta_strerror (rc));
 	  abort ();
 	}
       if (n == 0)
