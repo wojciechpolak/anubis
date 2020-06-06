@@ -96,7 +96,7 @@ message_append_signature_file (MESSAGE msg)
 
   n = strlen (homedir) + strlen (signature_file) + 2;
   signature_path = xmalloc (n);
-  snprintf (signature_path, n - 1, "%s/%s", homedir, signature_file);
+  snprintf (signature_path, n, "%s/%s", homedir, signature_file);
 
   message_append_text_file (msg, signature_path, "-- \n");
   free (signature_path);
