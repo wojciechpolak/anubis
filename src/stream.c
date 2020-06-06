@@ -53,7 +53,7 @@ _def_strerror (void *data, int rc)
 static int
 _def_write (void *sd, const char *data, size_t size, size_t * nbytes)
 {
-  int rc = send ((int) sd, data, size, 0);
+  int rc = send ((int) (ptrdiff_t) sd, data, size, 0);
   if (rc >= 0)
     {
       *nbytes = rc;
@@ -65,7 +65,7 @@ _def_write (void *sd, const char *data, size_t size, size_t * nbytes)
 static int
 _def_read (void *sd, char *data, size_t size, size_t * nbytes)
 {
-  int rc = recv ((int) sd, data, size, 0);
+  int rc = recv ((int) (ptrdiff_t) sd, data, size, 0);
   if (rc >= 0)
     {
       *nbytes = rc;
@@ -77,7 +77,7 @@ _def_read (void *sd, char *data, size_t size, size_t * nbytes)
 static int
 _def_close (void *sd)
 {
-  close ((int) sd);
+  close ((int) (ptrdiff_t) sd);
   return 0;
 }
 

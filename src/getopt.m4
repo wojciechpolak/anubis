@@ -220,7 +220,7 @@ print_option_descr (const char *descr, size_t lmargin, size_t rmargin)
 {
   while (*descr)
     {
-      size_t s = 0;
+      int s = 0;
       size_t i;
       size_t width = rmargin - lmargin;
       

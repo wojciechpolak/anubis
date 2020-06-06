@@ -313,7 +313,7 @@ static int
 _stdio_write (void *sd, const char *data, size_t size, size_t * nbytes)
 {
   int rc;
-  int fd = (int) sd;
+  int fd = (int) (ptrdiff_t) sd;
 
   if (fd == 0)
     fd = 1;
@@ -330,7 +330,7 @@ static int
 _stdio_read (void *sd, char *data, size_t size, size_t * nbytes)
 {
   int n;
-  int fd = (int) sd;
+  int fd = (int) (ptrdiff_t) sd;
   fd_set rds;
 
   errno = 0;

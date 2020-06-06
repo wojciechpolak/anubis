@@ -328,22 +328,6 @@ static volatile unsigned long _anubis_hang;
 /* List of users who are allowed to use HANG in their profiles */
 ANUBIS_LIST allow_hang_users; 
 
-static struct rc_kwdef esmtp_kw[] = {
-  { "esmtp-auth",   KW_ESMTP_AUTH, KWF_HIDDEN },
-  { "esmtp-anonymous-token", KW_ESMTP_ANONYMOUS_TOKEN, KWF_HIDDEN },
-  { "esmtp-auth-id", KW_ESMTP_AUTH_ID, KWF_HIDDEN },
-  { "esmtp-authz-id", KW_ESMTP_AUTHZ_ID, KWF_HIDDEN },
-  { "esmtp-password", KW_ESMTP_PASSWORD, KWF_HIDDEN },
-  { "esmtp-service",  KW_ESMTP_SERVICE, KWF_HIDDEN },
-  { "esmtp-hostname", KW_ESMTP_HOSTNAME, KWF_HIDDEN },
-  { "esmtp-generic-service", KW_ESMTP_SERVICE, KWF_HIDDEN },
-  { "esmtp-passcode", KW_ESMTP_PASSCODE, KWF_HIDDEN },
-  { "esmtp-realm", KW_ESMTP_REALM, KWF_HIDDEN },
-  { "esmtp-allowed-mech", KW_ESMTP_ALLOWED_MECH },
-  { "esmtp-require-encryption", KW_ESMTP_REQUIRE_ENCRYPTION },
-  { NULL }
-};
-
 static int
 parse_esmtp_kv (int key, ANUBIS_LIST arglist)
 {

@@ -341,7 +341,7 @@ void
 net_create_stream (NET_STREAM * str, int fd)
 {
   stream_create (str);
-  stream_set_io (*str, (void *) fd, NULL, NULL, NULL, NULL, NULL);
+  stream_set_io (*str, (void *) (ptrdiff_t) fd, NULL, NULL, NULL, NULL, NULL);
 }
 
 

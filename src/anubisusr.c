@@ -879,7 +879,8 @@ synch (void)
     }
 
   stream_create (&iostream);
-  stream_set_io (iostream, (void *) fd, NULL, NULL, NULL, NULL, NULL);
+  stream_set_io (iostream, (void *) (ptrdiff_t) fd, NULL, NULL, NULL, NULL,
+		 NULL);
 
   repl = smtp_reply_new ();
   smtp_get_reply (repl);

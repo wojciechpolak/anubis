@@ -288,7 +288,8 @@ start_ssl_server (NET_STREAM sd_client, int verbose)
 static void
 verify_certificate (gnutls_session_t session)
 {
-  int status, rc;
+  int rc;
+  unsigned status;
 
   rc = gnutls_certificate_verify_peers2 (session, &status);
   if (rc)

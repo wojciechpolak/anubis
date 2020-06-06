@@ -40,7 +40,7 @@ static size_t
 log_port_write (SCM port, SCM src, size_t start, size_t count)
 {
   struct anubis_log_port *lp = GET_LOG_PORT (port);
-  char *str = SCM_BYTEVECTOR_CONTENTS (src) + start;
+  signed char *str = SCM_BYTEVECTOR_CONTENTS (src) + start;
   int n = count;
   if (str[n-1] == '\n')
     n--;
@@ -63,16 +63,8 @@ log_port_write (SCM port, SCM src, size_t start, size_t count)
 static int
 log_port_print (SCM exp, SCM port, scm_print_state *pstate)
 {
-  struct anubis_log_port *lp = GET_LOG_PORT (exp);
   scm_puts ("#<Anubis log port>", port);
   return 1;
-}
-
-static void
-log_port_close (SCM port)
-{
-  struct anubis_log_port *lp = GET_LOG_PORT (port);
-  //FIXME
 }
 
 void
@@ -81,7 +73,6 @@ guile_init_anubis_log_port (void)
   scm_anubis_log_port_type = scm_make_port_type ("anubis-log",
 						 NULL, log_port_write);
   scm_set_port_print (scm_anubis_log_port_type, log_port_print);
-  scm_set_port_close (scm_anubis_log_port_type, log_port_close);
   scm_set_port_needs_close_on_gc (scm_anubis_log_port_type, 1);
 }    
 
