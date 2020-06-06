@@ -98,7 +98,7 @@ main (int argc, char *argv[])
 #ifdef WITH_GSASL
   dbtext_init ();
 # ifdef HAVE_LIBGDBM
-  gdbm_db_init ();
+  db_gdbm_init ();
 # endif
 # ifdef WITH_MYSQL
   mysql_db_init ();

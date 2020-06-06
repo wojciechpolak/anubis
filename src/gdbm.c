@@ -33,7 +33,7 @@
 			 The last two items are optional */
 
 static int
-gdbm_db_open (void **dp, ANUBIS_URL * url, enum anubis_db_mode mode,
+db_gdbm_open (void **dp, ANUBIS_URL * url, enum anubis_db_mode mode,
 	      char const **errp)
 {
   GDBM_FILE dbf;
@@ -67,7 +67,7 @@ gdbm_db_open (void **dp, ANUBIS_URL * url, enum anubis_db_mode mode,
 }
 
 static int
-gdbm_db_close (void *d)
+db_gdbm_close (void *d)
 {
   gdbm_close (d);
   return ANUBIS_DB_SUCCESS;
@@ -101,7 +101,7 @@ gdbm_content_to_record (char *keystr, datum content, ANUBIS_USER * rec)
 }
 
 static int
-gdbm_db_get (void *d, const char *keystr, ANUBIS_USER * rec, int *errp)
+db_gdbm_get (void *d, const char *keystr, ANUBIS_USER * rec, int *errp)
 {
   datum key, content;
 
@@ -118,7 +118,7 @@ gdbm_db_get (void *d, const char *keystr, ANUBIS_USER * rec, int *errp)
 }
 
 static int
-gdbm_db_list (void *d, ANUBIS_LIST  list, int *ecode)
+db_gdbm_list (void *d, ANUBIS_LIST  list, int *ecode)
 {
   datum key, content;
 
@@ -147,7 +147,7 @@ gdbm_db_list (void *d, ANUBIS_LIST  list, int *ecode)
 }
 
 static int
-gdbm_db_put (void *d, const char *keystr, ANUBIS_USER * rec, int *errp)
+db_gdbm_put (void *d, const char *keystr, ANUBIS_USER * rec, int *errp)
 {
   size_t size, n;
   char *text;
@@ -191,7 +191,7 @@ gdbm_db_put (void *d, const char *keystr, ANUBIS_USER * rec, int *errp)
 }
 
 static int
-gdbm_db_delete (void *d, const char *keystr, int *ecode)
+db_gdbm_delete (void *d, const char *keystr, int *ecode)
 {
   int rc;
   datum key;
@@ -208,21 +208,21 @@ gdbm_db_delete (void *d, const char *keystr, int *ecode)
   return rc;
 }
 
-const char *
-gdbm_db_strerror (void *d, int rc)
+static const char *
+db_gdbm_strerror (void *d, int rc)
 {
   return gdbm_strerror (rc);
 }
 
 void
-gdbm_db_init (void)
+db_gdbm_init (void)
 {
   anubis_db_register ("gdbm",
-		      gdbm_db_open,
-		      gdbm_db_close,
-		      gdbm_db_get,
-		      gdbm_db_put,
-		      gdbm_db_delete, gdbm_db_list, gdbm_db_strerror);
+		      db_gdbm_open,
+		      db_gdbm_close,
+		      db_gdbm_get,
+		      db_gdbm_put,
+		      db_gdbm_delete, db_gdbm_list, db_gdbm_strerror);
 }
 
 #endif /* HAVE_LIBGDBM */

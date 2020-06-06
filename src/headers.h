@@ -604,7 +604,7 @@ void anubis_db_free_record (ANUBIS_USER * rec);
 void dbtext_init (void);
 
 /* gdbm.c */
-void gdbm_db_init (void);
+void db_gdbm_init (void);
 
 /* mysql.c */
 void mysql_db_init (void);
