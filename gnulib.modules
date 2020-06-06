@@ -5,7 +5,6 @@ gettext
 getline
 gitlog-to-changelog
 obstack
-getopt
 getpass
 regex
 setenv

@@ -31,7 +31,6 @@ src/tls.c
 src/transmode.c
 src/tunnel.c
 
-lib/getopt.c
 lib/obstack.c
 
 # EOF
