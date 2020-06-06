@@ -524,9 +524,8 @@ void gpg_section_init (void);
 void init_guile (void);
 void guile_debug (int);
 void guile_section_init (void);
-void guile_init_anubis_error_port (void);
+void guile_init_anubis_log_port (void);
 SCM guile_make_anubis_error_port (int err);
-void guile_init_anubis_info_port (void);
 SCM guile_make_anubis_info_port (void);
 #endif /* WITH_GUILE */
 

@@ -83,8 +83,7 @@ init_guile ()
 {
   scm_init_guile ();
   scm_load_goops ();
-  guile_init_anubis_info_port ();
-  guile_init_anubis_error_port ();
+  guile_init_anubis_log_port ();
 }
 
 
@@ -110,7 +109,7 @@ guile_ports_open ()
 
       if (fd >= 0)
 	{
-	  port = scm_fdes_to_port (fd, "a", scm_makfrom0str (name));
+	  port = scm_fdes_to_port (fd, "a", scm_from_locale_string (name));
 	  guile_ports_close ();
 	  scm_set_current_error_port (port);
 	  scm_set_current_output_port (port);
@@ -157,7 +156,7 @@ guile_load_path_append_handler (void *data)
 
   pscm = SCM_VARIABLE_LOC (scm_c_lookup ("%load-path"));
   *pscm = scm_append (scm_list_3 (path_scm,
-				  scm_list_1 (scm_makfrom0str (path)),
+				  scm_list_1 (scm_from_locale_string (path)),
 				  SCM_EOL));
   return SCM_UNSPECIFIED;
 }
@@ -267,7 +266,7 @@ list_to_args (ANUBIS_LIST arglist)
 	  switch (p[1])
 	    {
 	    case ':':
-	      val = scm_c_make_keyword (p + 2);
+	      val = scm_from_locale_keyword (p + 2);
 	      break;
 
 	    case 'f':
@@ -491,10 +490,12 @@ guile_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
     }
 
   if (setjmp (jmp_env) == 0)
-    scm_internal_lazy_catch (SCM_BOOL_T,
-			     inner_catch_body,
-			     &closure,
-			     eval_catch_handler, &jmp_env);
+    {
+      scm_c_catch (SCM_BOOL_T,
+		   inner_catch_body, &closure,
+		   eval_catch_handler, &jmp_env,
+		   NULL, NULL);
+    }
 }
 
 static struct rc_secdef_child guile_secdef_child = {

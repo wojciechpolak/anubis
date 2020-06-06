@@ -24,220 +24,89 @@
 
 #ifdef WITH_GUILE
 
-#ifndef HAVE_SCM_T_OFF
-typedef off_t scm_t_off;
-#endif
+static scm_t_port_type *scm_anubis_log_port_type;
 
-static scm_t_bits scm_tc16_anubis_error_port;
-static scm_t_bits scm_tc16_anubis_info_port;
+#define GET_LOG_PORT(x) ((struct anubis_log_port *) SCM_STREAM (x))
 
-typedef void (*log_flush_fn) (int flag, char *, size_t);
+enum { PORT_LOG_INFO, PORT_LOG_ERROR };
 
-struct _anubis_error_port {
+struct anubis_log_port {
+  int type;
   int flag; /* For error ports: -1 if error, >=0 if warning;
 	       For info ports: verbosity level */
-  log_flush_fn flush;
 };
 
-#define ANUBIS_ERROR_PORT_BUFSIZE 256
-
-static void
-log_flush (int flag, char *str, size_t size)
+static size_t
+log_port_write (SCM port, SCM src, size_t start, size_t count)
 {
-  if (flag == -1)
-    anubis_error (0, 0, "%*.*s", size, size, str);
-  else
-    anubis_warning (0, "%*.*s", size, size, str);
+  struct anubis_log_port *lp = GET_LOG_PORT (port);
+  char *str = SCM_BYTEVECTOR_CONTENTS (src) + start;
+  int n = count;
+  if (str[n-1] == '\n')
+    n--;
+  switch (lp->type)
+    {
+    case PORT_LOG_INFO:
+      info (lp->flag, "%*.*s", n, n, str);
+      break;
+
+    case PORT_LOG_ERROR:
+      if (lp->flag == -1)
+	anubis_error (0, 0, "%*.*s", n, n, str);
+      else
+	anubis_warning (0, "%*.*s", n, n, str);
+      break;
+    }
+  return count;
+}
+
+static int
+log_port_print (SCM exp, SCM port, scm_print_state *pstate)
+{
+  struct anubis_log_port *lp = GET_LOG_PORT (exp);
+  scm_puts ("#<Anubis log port>", port);
+  return 1;
 }
 
 static void
-info_flush (int flag, char *str, size_t size)
+log_port_close (SCM port)
 {
-  info (flag, "%*.*s", size, size, str);
+  struct anubis_log_port *lp = GET_LOG_PORT (port);
+  //FIXME
 }
 
-SCM
-_make_anubis_log_port (long type, const char *descr, int flag,
-		       log_flush_fn flush)
+void
+guile_init_anubis_log_port (void)
 {
-  struct _anubis_error_port *dp;
-  SCM port;
-  scm_port *pt;
+  scm_anubis_log_port_type = scm_make_port_type ("anubis-log",
+						 NULL, log_port_write);
+  scm_set_port_print (scm_anubis_log_port_type, log_port_print);
+  scm_set_port_close (scm_anubis_log_port_type, log_port_close);
+  scm_set_port_needs_close_on_gc (scm_anubis_log_port_type, 1);
+}    
 
-  dp = scm_gc_malloc (sizeof (struct _anubis_error_port), descr);
-  dp->flag = flag;
-  dp->flush = flush;
+static SCM
+_make_anubis_log_port (int type, int flag)
+{
+  struct anubis_log_port *lp;
 
-  port = scm_new_port_table_entry (type);
-  pt = SCM_PTAB_ENTRY(port);
-  pt->rw_random = 0;
-  pt->write_buf = scm_gc_malloc (ANUBIS_ERROR_PORT_BUFSIZE, "port buffer");
-  pt->write_pos = pt->write_buf;
-  pt->write_buf_size = ANUBIS_ERROR_PORT_BUFSIZE;
-  pt->write_end = pt->write_buf + pt->write_buf_size;
-  
-  SCM_SET_CELL_TYPE (port, (type | SCM_OPN | SCM_WRTNG | SCM_BUFLINE));
-  SCM_SETSTREAM (port, dp);
-  return port;
+  lp = scm_gc_typed_calloc (struct anubis_log_port);
+  lp->type = type;
+  lp->flag = flag;
+  return scm_c_make_port (scm_anubis_log_port_type,
+			  SCM_WRTNG | SCM_BUFLINE, (scm_t_bits) lp);
 }
 
 SCM
 guile_make_anubis_error_port (int err)
 {
-  return _make_anubis_log_port (scm_tc16_anubis_error_port,
-				"anubis-error-port", err, log_flush);
+  return _make_anubis_log_port (PORT_LOG_ERROR, err);
 }
 
 SCM
 guile_make_anubis_info_port (void)
 {
-  return _make_anubis_log_port (scm_tc16_anubis_info_port,
-				"anubis-info-port", 0, info_flush);
+  return _make_anubis_log_port (PORT_LOG_INFO, NORMAL);
 }
-
-#define ANUBIS_ERROR_PORT(x) ((struct _anubis_error_port *) SCM_STREAM (x))
-
-static SCM
-_anubis_error_port_mark (SCM port)
-{
-    return SCM_BOOL_F;
-}
-
-static void
-_anubis_error_port_flush (SCM port)
-{
-  struct _anubis_error_port *dp = ANUBIS_ERROR_PORT (port);
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  size_t size = pt->write_pos - pt->write_buf;
-  unsigned char *nl = memchr (pt->write_buf, '\n', size);
-  int wrsize;
-
-  if (!nl)
-    return;
   
-  wrsize = nl - pt->write_buf;
-
-  dp->flush (dp->flag, (char *) pt->write_buf, wrsize);
-  
-  if (wrsize < size)
-    {
-      size_t write_start;
-
-      nl++;
-      write_start = pt->write_pos - nl;
-      memmove (pt->write_buf, nl, write_start);
-      pt->write_pos = pt->write_buf + write_start;
-    }
-  else
-    pt->write_pos = pt->write_buf;
-}
-
-static int
-_anubis_error_port_close (SCM port)
-{
-  struct _anubis_error_port *dp = ANUBIS_ERROR_PORT (port);
-
-  if (dp)
-    {
-      _anubis_error_port_flush (port);
-      SCM_SETSTREAM (port, NULL);
-      scm_gc_free (dp, sizeof(struct _anubis_error_port),
-		   "anubis-error-port");
-    }
-  return 0;
-}
-
-static scm_sizet
-_anubis_error_port_free (SCM port)
-{
-  _anubis_error_port_close (port);
-  return 0;
-}
-
-static int
-_anubis_error_port_fill_input (SCM port)
-{
-  return EOF;
-}
-
-static void
-_anubis_error_port_write (SCM port, const void *data, size_t size)
-{
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  size_t space = pt->write_end - pt->write_pos;
-  if (space < size)
-    {
-      size_t start = pt->write_pos - pt->write_buf;
-      size_t new_size = pt->write_buf_size;
-      
-      do
-	{
-	  /*FIXME*/
-	  new_size *= 2;
-	}
-      while (new_size - start < size);
-      
-      pt->write_buf = scm_gc_realloc (pt->write_buf,
-				      pt->write_buf_size,
-				      new_size, "write buffer");
-      pt->write_buf_size = new_size;
-      pt->write_end = pt->write_buf + pt->write_buf_size;
-      pt->write_pos = pt->write_buf + start;
-    }
-  memcpy (pt->write_pos, data, size);
-  pt->write_pos += size;
-
-  if (memchr (data, '\n', size))
-    _anubis_error_port_flush (port);
-}
-
-static scm_t_off
-_anubis_error_port_seek (SCM port, scm_t_off offset, int whence)
-{
-  return -1;
-}
-
-static int
-_anubis_error_port_print (SCM exp, SCM port, scm_print_state *pstate)
-{
-  scm_puts ("#<Anubis error port>", port);
-  return 1;
-}
-
-static int
-_anubis_info_port_print (SCM exp, SCM port, scm_print_state *pstate)
-{
-  scm_puts ("#<Anubis info port>", port);
-  return 1;
-}
-
-void
-guile_init_anubis_error_port ()
-{
-  scm_tc16_anubis_error_port =
-    scm_make_port_type ("anubis-error-port",
-			_anubis_error_port_fill_input,
-			_anubis_error_port_write);
-  scm_set_port_mark (scm_tc16_anubis_error_port, _anubis_error_port_mark);
-  scm_set_port_free (scm_tc16_anubis_error_port, _anubis_error_port_free);
-  scm_set_port_print (scm_tc16_anubis_error_port, _anubis_error_port_print);
-  scm_set_port_flush (scm_tc16_anubis_error_port, _anubis_error_port_flush);
-  scm_set_port_close (scm_tc16_anubis_error_port, _anubis_error_port_close);
-  scm_set_port_seek (scm_tc16_anubis_error_port, _anubis_error_port_seek);
-}    
-
-void
-guile_init_anubis_info_port ()
-{
-  scm_tc16_anubis_info_port =
-    scm_make_port_type ("anubis-info-port",
-			_anubis_error_port_fill_input,
-			_anubis_error_port_write);
-  scm_set_port_mark (scm_tc16_anubis_info_port, _anubis_error_port_mark);
-  scm_set_port_free (scm_tc16_anubis_info_port, _anubis_error_port_free);
-  scm_set_port_print (scm_tc16_anubis_info_port, _anubis_info_port_print);
-  scm_set_port_flush (scm_tc16_anubis_info_port, _anubis_error_port_flush);
-  scm_set_port_close (scm_tc16_anubis_info_port, _anubis_error_port_close);
-  scm_set_port_seek (scm_tc16_anubis_info_port, _anubis_error_port_seek);
-}    
 #endif
