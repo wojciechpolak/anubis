@@ -92,7 +92,7 @@ AM_GNU_GETTEXT_VERSION([0.16])
 
 AC_SUBST([M4_DEFS])
 AC_SUBST([GUILE_SCRIPTS])
-GINT_INIT([gint],[1.8 with-guile nodoc std-site-dir],
+GINT_INIT([gint],[2.2.0 with-guile nodoc std-site-dir],
           [useguile=yes
 	   AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
            GUILE_SCRIPTS='$(GUILE_SCM)'
