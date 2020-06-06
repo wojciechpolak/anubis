@@ -220,7 +220,7 @@ _def_strerror (int rc)
 static int
 _def_write (void *sd, char *data, size_t size, size_t * nbytes)
 {
-  int n = write ((int) sd, data, size);
+  int n = write ((int) (ptrdiff_t) sd, data, size);
   if (n != size)
     return errno;
   if (nbytes)
@@ -231,7 +231,7 @@ _def_write (void *sd, char *data, size_t size, size_t * nbytes)
 static int
 _def_read (void *sd, char *data, size_t size, size_t * nbytes)
 {
-  int n = read ((int) sd, data, size);
+  int n = read ((int) (ptrdiff_t) sd, data, size);
   if (n != size)
     return errno ? errno : -1;
   if (nbytes)
@@ -242,7 +242,7 @@ _def_read (void *sd, char *data, size_t size, size_t * nbytes)
 static int
 _def_close (void *sd)
 {
-  return close ((int) sd);
+  return close ((int) (ptrdiff_t) sd);
 }
 
 int (*_mta_read) (void *, char *, size_t, size_t *) = _def_read;
@@ -302,7 +302,7 @@ _tls_fd_pull (gnutls_transport_ptr_t fd, void *buf, size_t size)
   int rc;
   do
     {
-      rc = read ((int) fd, buf, size);
+      rc = read ((int) (ptrdiff_t) fd, buf, size);
     }
   while (rc == -1 && errno == EAGAIN);
   return rc;
@@ -314,7 +314,7 @@ _tls_fd_push (gnutls_transport_ptr_t fd, const void *buf, size_t size)
   int rc;
   do
     {
-      rc = write ((int) fd, buf, size);
+      rc = write ((int) (ptrdiff_t) fd, buf, size);
     }
   while (rc == -1 && errno == EAGAIN);
   return rc;
@@ -853,7 +853,7 @@ mta_daemon (int argc, char **argv)
 	  return 1;
 	}
 
-      in = out = (void *) fd;
+      in = out = (void *) (ptrdiff_t) fd;
       smtp ();
       break;
     }
@@ -864,8 +864,8 @@ mta_daemon (int argc, char **argv)
 int
 mta_stdio (int argc, char **argv)
 {
-  in = (void *) fileno (stdin);
-  out = (void *) fileno (stdout);
+  in = (void *) (ptrdiff_t) fileno (stdin);
+  out = (void *) (ptrdiff_t) fileno (stdout);
   smtp ();
   return 0;
 }
