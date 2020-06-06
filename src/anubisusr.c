@@ -891,7 +891,6 @@ synch (void)
       smtp_reply_free (repl);
       return 1;
     }
-  smtp_reply_free (repl);
 
   smtp_ehlo (1);
 
@@ -910,6 +909,7 @@ synch (void)
   if (!smtp_reply_has_capa (smtp_capa, "XDATABASE", NULL))
     {
       error (_("Remote party does not reveal XDATABASE capability"));
+      smtp_reply_free (repl);
       smtp_quit ();
       return 1;
     }
