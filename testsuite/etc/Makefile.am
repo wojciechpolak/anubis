@@ -79,7 +79,8 @@ RCFILES = \
  std.rc\
  target.in.rc\
  tlsoneway.rc\
- trigger.rc
+ trigger.rc\
+ user.rc
 
 noinst_DATA = $(RCFILES) std.pat
 CLEANFILES = $(RCFILES) std.pat
@@ -100,6 +101,7 @@ target.in.rc: target.in.in
 trigger.rc: trigger.in 
 paolo.rc: paolo.in
 std.pat: std.pin
+user.rc: user.in
 
 SUFFIXES=.in .rc .pin .pat
 
