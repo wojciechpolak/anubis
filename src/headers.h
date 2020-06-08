@@ -239,6 +239,7 @@ ANUBIS_MODE;
 #define T_XELO              0x10000000
 #define T_LOCATION_COLUMN   0x20000000
 #define T_ESMTP_AUTH_DELAYED 0x40000000
+#define T_PASSFD            0x80000000
 
 /* Regexp modifiers */
 /* Basic types */

@@ -1,3 +1,0 @@
-anubis_init
-
-anubis_pat "${ANUBIS_RC_DIR}/paolo.pat"

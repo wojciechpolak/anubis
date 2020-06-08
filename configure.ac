@@ -38,6 +38,7 @@ AC_PATH_PROG(idecrypt_path,idecrypt,/usr/sbin/idecrypt,
 $PATH:/sbin:/usr/sbin:/usr/local/sbin)
 AC_DEFINE_UNQUOTED(IDECRYPT_PATH,"${idecrypt_path}",
 [Define if IDECRYPT_PATH is present.])
+AC_PATH_PROG([GPG],[gpg],[false])
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -102,6 +103,7 @@ GINT_INIT([gint],[2.2.0 with-guile nodoc std-site-dir],
 if test "$useguile" = "no"; then
  AC_MSG_RESULT([Disabling GUILE support...])
 fi
+AM_CONDITIONAL([GUILE_COND], [test "$useguile" = "yes"])
 
 dnl Use option --without-gpgme to NOT compile GnuPG (GPGME library) support.
 AC_SUBST(ANUBIS_GPGFILES)
@@ -142,6 +144,7 @@ else
  ANUBIS_GPGFILES='$(GPGFILES)'
  M4_DEFS="$M4_DEFS -DWITH_GPG"
 fi
+AM_CONDITIONAL([GPG_COND],[test "$with_gpgme" = "yes"])
 
 AC_SUBST(GSASL_LIBS)
 AC_CHECK_LIB(resolv, res_query)
@@ -377,9 +380,12 @@ AC_CONFIG_FILES([Makefile
  po/Makefile.in
  scripts/Makefile
  src/Makefile
- testsuite/Makefile
- testsuite/data/Makefile
- testsuite/etc/Makefile
  ])
+
+# Initialize the test suite.
+AC_CONFIG_TESTDIR(tests)
+AC_CONFIG_FILES([tests/Makefile tests/atlocal
+ tests/data/Makefile])
+AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 AC_OUTPUT

@@ -1,9 +1,0 @@
-Makefile
-Makefile.in
-.deps
-*.log
-*.sum
-site.exp
-remote.exp
-mta
-findport

@@ -1,0 +1,82 @@
+# This file is part of GNU Anubis testsuite.        -*- autotest -*-
+# Copyright (C) 2003-2020 The Anubis Team.
+#
+# GNU Anubis is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# GNU Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
+AT_SETUP([Append a text to the message body])
+AT_KEYWORDS([add body])
+
+AT_ANUBIS_CONFIG([anubis.rc],
+[BEGIN CONTROL
+logfile $PWD/etc/anubis.log
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+END
+
+BEGIN RULE
+if header[[X-Command]] = "Complete"
+# NOTE: The text below up to and including EOT is indented with tabs. 
+  add body <<-EOT
+	How cheerfully he seems to grin,
+	How neatly spread his claws,
+	And welcome little fishes in
+	With gently smiling jaws!
+	EOT
+fi
+
+remove [[X-Command]]
+END
+])
+
+AT_DATA([input],
+[HELO localhost		
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: The Crocodile
+X-Command: Complete
+
+How doth the little crocodile
+Improve his shining tail,
+And pour the waters of the Nile
+On every golden scale!
+
+.
+QUIT
+])
+AT_CHECK([
+anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
+],
+[0],
+[220 localhost ([GNU Anubis v]AT_PACKAGE_VERSION) bitbucket ready
+250 pleased to meet you
+250 Sender OK
+250 Recipient OK
+354 Enter mail, end with "." on a line by itself
+250 Mail accepted for delivery
+221 Done
+],
+[ignore])
+AT_CHECK([diff input etc/mta.log],
+[1],
+[8d7
+< X-Command: Complete
+14a14,17
+> How cheerfully he seems to grin,
+> How neatly spread his claws,
+> And welcome little fishes in
+> With gently smiling jaws!
+])
+AT_CLEANUP
+

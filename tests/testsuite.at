@@ -1,0 +1,69 @@
+# This file is part of GNU Anubis.   -*- autotest -*-
+# Copyright (C) 2020 The Anubis Team.
+#
+# Anubis is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with anubis.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_version_prereq([2.52g])
+m4_define([AT_SKIP_TEST],[exit 77])
+m4_define([ANUBIS_PREREQ_CAPA],
+ [anubis --show-config-options|fgrep -q $1||AT_SKIP_TEST])
+m4_define([ANUBIS_PREREQ_GPG],
+ [$GPG --version >/dev/null 2>&1 || AT_SKIP_TEST])
+m4_define([AT_ANUBIS_CONFIG],
+[test -d etc || mkdir etc
+cat > etc/$1 <<__EOT__
+$2
+__EOT__
+])
+AT_INIT
+AT_TESTED([anubis])
+AT_BANNER([Basic tests])
+m4_include([parse.at])
+m4_include([empty.at])
+m4_include([mult.at])
+m4_include([hadd00.at])
+m4_include([hadd01.at])
+m4_include([hadd02.at])
+m4_include([badd.at])
+m4_include([fadd.at])
+m4_include([cond.at])
+m4_include([hmod.at])
+m4_include([bmod.at])
+m4_include([hdel00.at])
+m4_include([hdel01.at])
+m4_include([hdel02.at])
+m4_include([hdel03.at])
+m4_include([trigger.at])
+AT_BANNER([GPG])
+m4_include([gpgcrypt.at])
+m4_include([gpgsign.at])
+m4_include([gpgse.at])
+
+AT_BANNER([MIME])
+m4_include([mime00.at])
+m4_include([mime01.at])
+
+AT_BANNER([TLS])
+m4_include([tlsoneway.at])
+
+AT_BANNER([Guile])
+m4_include([rot-13.at])
+m4_include([remailer.at])
+
+AT_BANNER([anubisusr])
+m4_include([anubisusr.at])
+
+AT_BANNER([Other tests])
+m4_include([paolo.at])
+m4_include([no-backref.at])

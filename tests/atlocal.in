@@ -1,0 +1,15 @@
+# @configure_input@                                     -*- shell-script -*-
+# Configurable variable values for Anubis test suite.
+# Copyright (C) 2020 Free Software Foundation, Inc.
+
+PATH=@abs_top_builddir@/src:$top_srcdir:$srcdir:$PATH
+confdir=@abs_builddir@/etc
+ANUBIS_DATA_DIR=@abs_builddir@/data
+GPG=@GPG@
+@TLS_COND_TRUE@GNUTLS_SED='s/%TLS%//'
+@TLS_COND_FALSE@GNUTLS_SED='/%TLS%/d'
+@GPG_COND_TRUE@GPG_SED='s/%GPG%//'
+@GPG_COND_FALSE@GPG_SED='/%GPG%/d'
+@GUILE_COND_TRUE@GUILE_SED='s/%GUILE%//'
+@GUILE_COND_FALSE@GUILE_SED='/%GUILE%/d'
+

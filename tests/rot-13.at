@@ -1,0 +1,145 @@
+# This file is part of GNU Anubis testsuite.        -*- autotest -*-
+# Copyright (C) 2003-2020 The Anubis Team.
+#
+# GNU Anubis is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# GNU Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
+AT_SETUP([ROT-13 support])
+AT_KEYWORDS([rot-13 rot13])
+AT_ANUBIS_CONFIG([anubis.rc],
+[BEGIN CONTROL
+logfile $PWD/etc/anubis.log
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+END
+
+BEGIN GUILE
+guile-output $PWD/etc/anubis.out
+guile-debug yes
+guile-load-path-append $abs_top_srcdir/examples
+guile-load-path-append $abs_top_srcdir/guile
+guile-load-program rot-13.scm
+END
+
+BEGIN RULE
+trigger "rot-13.*body"
+  guile-process rot-13 #:body
+done
+
+trigger "rot-13.*subj"
+ guile-process rot-13 #:subject
+done
+END
+])
+AT_DATA([input],
+[HELO localhost		
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: rot-13 test@@rot-13 subject
+X-Comment: Anubis testsuite
+
+In /users3 did Kubla Khan
+A stately pleasure dome decree,
+Where /bin, the sacred river ran
+Through Test Suites measureless to Man
+Down to a sunless C.
+.
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: rot-13 test@@rot-13 body
+X-Comment: Anubis testsuite
+
+In /users3 did Kubla Khan
+A stately pleasure dome decree,
+Where /bin, the sacred river ran
+Through Test Suites measureless to Man
+Down to a sunless C.
+.
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: rot-13 test@@rot-13 body subject
+X-Comment: Anubis testsuite
+
+In /users3 did Kubla Khan
+A stately pleasure dome decree,
+Where /bin, the sacred river ran
+Through Test Suites measureless to Man
+Down to a sunless C.
+.
+QUIT
+])
+AT_DATA([expout],
+[HELO localhost		
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: ebg-13 grfg
+X-Comment: Anubis testsuite
+
+In /users3 did Kubla Khan
+A stately pleasure dome decree,
+Where /bin, the sacred river ran
+Through Test Suites measureless to Man
+Down to a sunless C.
+.
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: rot-13 test
+X-Comment: Anubis testsuite
+
+Va /hfref3 qvq Xhoyn Xuna
+N fgngryl cyrnfher qbzr qrperr,
+Jurer /ova, gur fnperq evire ena
+Guebhtu Grfg Fhvgrf zrnfheryrff gb Zna
+Qbja gb n fhayrff P.
+.
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: ebg-13 grfg
+X-Comment: Anubis testsuite
+
+Va /hfref3 qvq Xhoyn Xuna
+N fgngryl cyrnfher qbzr qrperr,
+Jurer /ova, gur fnperq evire ena
+Guebhtu Grfg Fhvgrf zrnfheryrff gb Zna
+Qbja gb n fhayrff P.
+.
+QUIT
+])
+AT_CHECK([
+ANUBIS_PREREQ_CAPA(GUILE)
+anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
+],
+[0],
+[ignore],
+[ignore])
+AT_CHECK([cat etc/mta.log],
+[0],
+[expout])
+AT_CLEANUP
+

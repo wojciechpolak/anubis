@@ -20,7 +20,7 @@
 
 ACLOCAL_AMFLAGS = -I m4 -I am -I gint
 SUBDIRS = build lib gint src po doc scripts examples guile contrib \
-	  elisp testsuite
+	  elisp tests 
 
 AM_DISTCHECK_CONFIGURE_FLAGS =\
  --with-gsasl\

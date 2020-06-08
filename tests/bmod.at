@@ -1,0 +1,84 @@
+# This file is part of GNU Anubis testsuite.        -*- autotest -*-
+# Copyright (C) 2003-2020 The Anubis Team.
+#
+# GNU Anubis is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# GNU Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
+AT_SETUP([Modify the message body])
+AT_KEYWORDS([body modify])
+AT_ANUBIS_CONFIG([anubis.rc],
+[BEGIN CONTROL
+logfile $PWD/etc/anubis.log
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+END
+
+BEGIN RULE
+modify body :re [["a very \(old\)"]] "the new"
+modify body :re [["Xanadu"]] "/users3"
+modify body :re [["\(Alph\)"]] "/bin"
+modify body :re [["caverns"]] "Test Suites"
+modify body :re [["\(sea\)"]] "C"
+---END---
+])
+AT_DATA([input],
+[HELO localhost		
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: The Ancient Mariner Anew
+
+This is a very old text:
+
+In Xanadu did Kubla Khan
+A stately pleasure dome decree
+Where Alph, the sacred river ran
+Through caverns measureless to Man
+Down to a sunless sea.
+.
+QUIT
+])
+AT_DATA([expout],
+[HELO localhost
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: The Ancient Mariner Anew
+
+This is the new text:
+
+In /users3 did Kubla Khan
+A stately pleasure dome decree
+Where /bin, the sacred river ran
+Through Test Suites measureless to Man
+Down to a sunless C.
+.
+QUIT
+])
+AT_CHECK([
+anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
+],
+[0],
+[220 localhost ([GNU Anubis v]AT_PACKAGE_VERSION) bitbucket ready
+250 pleased to meet you
+250 Sender OK
+250 Recipient OK
+354 Enter mail, end with "." on a line by itself
+250 Mail accepted for delivery
+221 Done
+],
+[ignore])
+AT_CHECK([cat etc/mta.log],[0],[expout])
+AT_CLEANUP

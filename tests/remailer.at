@@ -1,0 +1,88 @@
+# This file is part of GNU Anubis testsuite.        -*- autotest -*-
+# Copyright (C) 2003-2020 The Anubis Team.
+#
+# GNU Anubis is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# GNU Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
+AT_SETUP([Remailer support])
+AT_ANUBIS_CONFIG([anubis.rc],
+[BEGIN CONTROL
+logfile $PWD/etc/anubis.log
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+END
+
+BEGIN GUILE
+guile-output $PWD/etc/anubis.out
+guile-debug yes
+guile-load-path-append $abs_top_srcdir/examples
+guile-load-path-append $abs_top_srcdir/guile
+guile-load-program remailer.scm
+END
+
+BEGIN RULE
+trigger "remail:(.*)/(.*)"
+  guile-process remailer-I #:rrt gray@localhost \
+                           #:post \1 \
+                           #:latent \2 \
+	 		   #:header "X-Processed-By: GNU Anubis & Remailer-I"
+done
+END
+])
+
+AT_DATA([input],
+[HELO localhost		
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: Testing remailer support@@remail:comp.os.unix/2:00
+
+USENET would be a better laboratory is there were
+more labor and less oratory.
+.
+QUIT
+])
+
+AT_DATA([expout],
+[HELO localhost		
+MAIL FROM:<gray@gnu.org>
+RCPT TO:<polak@gnu.org>
+DATA
+From: <gray@gnu.org>
+To: <polak@gnu.org>
+Subject: Testing remailer support
+
+::
+Anon-To: gray@localhost
+Anon-Post-To: comp.os.unix 
+Latent-Time: +2:00
+##
+X-Processed-By: GNU Anubis & Remailer-I
+ 
+USENET would be a better laboratory is there were
+more labor and less oratory.
+.
+QUIT
+])
+
+AT_CHECK([
+ANUBIS_PREREQ_CAPA(GUILE)
+anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
+],
+[0],
+[ignore],
+[ignore])
+AT_CHECK([cat etc/mta.log],
+[0],
+[expout])
+AT_CLEANUP

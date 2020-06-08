@@ -1,0 +1,139 @@
+# This file is part of GNU Anubis testsuite.        -*- autotest -*-
+# Copyright (C) 2003-2020 The Anubis Team.
+#
+# GNU Anubis is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# GNU Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
+AT_SETUP([Configuration upload])
+AT_KEYWORDS([anubisusr xdb00 upload])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+
+# First upload:
+#  user.rc is missing, we upload one.rc
+#  anubisusr should return 0. one.rc and user.rc should be identical
+#  after this test
+
+mkdir etc
+
+
+echo "anubis:guessme:$(id -un):$PWD/etc/user.rc" > etc/user.db
+
+AT_DATA([etc/net.rc],
+[machine localhost login anubis password guessme
+])
+
+AT_ANUBIS_CONFIG([anubis.rc],
+[BEGIN CONTROL
+mode auth
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+termlevel debug
+logfile $PWD/etc/anubis.log
+loglevel all
+tracefile yes
+END
+
+BEGIN AUTH
+sasl-password-db text://$PWD/etc/user.db
+sasl-allowed-mech CRAM-MD5
+smtp-greeting-message "Hej, sloneczko"
+smtp-help-message "Czlowieku, dopomoz sobie sam!"
+END
+])
+
+AT_DATA([one.rc],
+[[BEGIN CONTROL
+logfile "anubis.log"
+remote-mta "localhost:25"
+END
+BEGIN RULE
+if command["mail from"] = ".*<?root@localhost>?"
+  STOP
+fi
+END
+]])
+
+anustart --relax-perm-check --altrc etc/anubis.rc -- \
+         /bin/sh -c 'anubisusr -v -d --netrc etc/net.rc --file one.rc localhost:$ANUBIS_PORT'
+],
+[0],
+[ignore],
+[ignore])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+cmp etc/user.rc one.rc
+])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+
+# Second upload:
+#  We upload the same file, running anubisusr in verbose mode.
+#  Its output should contain string "File NOT changed",
+#  otherwise we declare test failure.
+
+anustart --relax-perm-check --altrc etc/anubis.rc -- \
+         /bin/sh -c 'anubisusr -v -d --netrc etc/net.rc --file one.rc localhost:$ANUBIS_PORT'
+],
+[0],
+[stdout],
+[stderr])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+grep -q "File NOT changed" stdout
+])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+
+# Third upload:
+#  Upload two.rc. After this test user.rc and add.rc must be identical.
+
+AT_DATA([two.rc],
+[BEGIN CONTROL
+logfile "anubis.log"
+remote-mta "localhost:25"
+END
+
+BEGIN RULE
+
+if header[[X-Command]] = "Complete"
+  add body <<-EOT
+         Text text text
+	EOT
+fi
+
+remove [[X-Command]]
+END
+])
+
+anustart --relax-perm-check --altrc etc/anubis.rc -- \
+         /bin/sh -c 'anubisusr -v -d --netrc etc/net.rc --file two.rc localhost:$ANUBIS_PORT'
+],
+[0],
+[stdout],
+[ignore])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+grep -q "File changed" stdout
+])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG(GSASL)
+cmp etc/user.rc two.rc
+])
+
+AT_CLEANUP

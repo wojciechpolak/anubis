@@ -162,6 +162,14 @@ main (int argc, char *argv[])
 
   if (anubis_mode == anubis_mda)  /* Mail Delivery Agent */
     mda ();
+  else if (topt & T_PASSFD)
+    {
+      int sd = 3;
+      if (listen (sd, 5))
+	anubis_error (EXIT_FAILURE, errno, _("listen(3) failed"));
+      kill (getppid (), SIGUSR1);
+      loop (sd);
+    }
   else if (topt & T_STDINOUT)     /* stdin/stdout */
     stdinout ();
   else

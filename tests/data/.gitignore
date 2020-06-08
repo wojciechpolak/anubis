@@ -1,0 +1,7 @@
+Makefile
+Makefile.in
+random_seed
+*.gpg
+/.gpg-v21-migrated
+private-keys-v1.d/
+

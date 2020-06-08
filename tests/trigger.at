@@ -1,0 +1,101 @@
+# This file is part of GNU Anubis testsuite.        -*- autotest -*-
+# Copyright (C) 2003-2020 The Anubis Team.
+#
+# GNU Anubis is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# GNU Anubis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
+AT_SETUP([Trigger mechanism])
+AT_KEYWORDS([trigger])
+AT_ANUBIS_CONFIG([anubis.rc],
+[BEGIN CONTROL
+logfile $PWD/etc/anubis.log
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+END
+
+BEGIN RULE
+trigger "^trigger1"
+  add [[X-Trigger-Test]] "is the true path to nirvana..."
+done
+
+trigger "^trigger2 (.*) (.*)"
+  add [[X-Trigger-Test]] "SMELLS LIKE \1 \2"
+done
+END
+])
+
+AT_DATA([input],
+[HELO localhost		
+MAIL FROM:<polak@gnu.org>
+RCPT TO:<gray@gnu.org>
+DATA
+From: <polak@gnu.org>
+To: <gray@gnu.org>
+Subject: COME AS YOU ARE@@trigger1
+
+Come as you are, as you were
+As I want you to to be.
+As a friend, as a friend
+As an old enemy
+Take your time
+Hurry up, the choice is yours
+Don't be late.
+Take a rest, as a friend
+As an old memoria...
+
+.
+MAIL FROM:<polak@gnu.org>
+RCPT TO:<gray@gnu.org>
+DATA
+From: <polak@gnu.org>
+To: <gray@gnu.org>
+Subject: YOU KNOW YOU'RE RIGHT@@trigger2 TEEN SPIRIT
+
+With the lights out, it's less dangerous
+Here we are now, entertain us
+I feel stupid, and contagious
+Here we are now, entertain us
+
+.
+QUIT
+])
+AT_CHECK([
+anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
+],
+[0],
+[220 localhost ([GNU Anubis v]AT_PACKAGE_VERSION) bitbucket ready
+250 pleased to meet you
+250 Sender OK
+250 Recipient OK
+354 Enter mail, end with "." on a line by itself
+250 Mail accepted for delivery
+250 Sender OK
+250 Recipient OK
+354 Enter mail, end with "." on a line by itself
+250 Mail accepted for delivery
+221 Done
+],
+[ignore])
+AT_CHECK([diff input etc/mta.log],
+[1],
+[7c7,8
+< Subject: COME AS YOU ARE@@trigger1
+---
+> Subject: COME AS YOU ARE
+> X-Trigger-Test: is the true path to nirvana...
+25c26,27
+< Subject: YOU KNOW YOU'RE RIGHT@@trigger2 TEEN SPIRIT
+---
+> Subject: YOU KNOW YOU'RE RIGHT
+> X-Trigger-Test: SMELLS LIKE TEEN SPIRIT
+])
+AT_CLEANUP
+
