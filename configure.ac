@@ -38,7 +38,42 @@ AC_PATH_PROG(idecrypt_path,idecrypt,/usr/sbin/idecrypt,
 $PATH:/sbin:/usr/sbin:/usr/local/sbin)
 AC_DEFINE_UNQUOTED(IDECRYPT_PATH,"${idecrypt_path}",
 [Define if IDECRYPT_PATH is present.])
-AC_PATH_PROG([GPG],[gpg],[false])
+
+# *********************************************************************
+# GPG v2 (for the testsuite)
+# The testsuite needs to create GPG keys, which would be prohibitively
+# slow without the %transient-key statement, which appeared in GPG 2.1
+# *********************************************************************
+AC_ARG_VAR([GPG],[Name of the gpg version 2 binary])
+AC_MSG_CHECKING([for the GPG v2 binary])
+uGPG=$GPG
+unset GPG
+gpgver() {
+    GPG_VERSION_STRING=$($1 --version|head -n 1|sed -e 's/.* //')
+    oIFS=$IFS
+    IFS="."
+    set -- $GPG_VERSION_STRING
+    GPG_VERSION_MAJOR=$1
+    GPG_VERSION_MINOR=$2
+    IFS=$oIFS
+}
+for prog in $uGPG gpg2 gpg
+do
+   gpgver $prog
+   if test -n "$GPG_VERSION_MAJOR" -a -n "$GPG_VERSION_MINOR"; then
+       if test $GPG_VERSION_MAJOR -eq 2; then
+           if test $GPG_VERSION_MINOR -ge 1; then
+	       GPG=$prog
+	       break
+	   fi
+       elif test $GPG_VERSION_MAJOR -gt 2; then
+           GPG=$prog
+           break
+       fi
+   fi
+done
+AC_MSG_RESULT([${GPG:-none}${GPG:+, $GPG_VERSION_STRING}])
+AM_CONDITIONAL([COND_GPG2],[test -n "$GPG"])
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -91,13 +126,11 @@ dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-formatstring-macros])
 AM_GNU_GETTEXT_VERSION([0.16])
 
-AC_SUBST([M4_DEFS])
 AC_SUBST([GUILE_SCRIPTS])
 GINT_INIT([gint],[2.2.0 with-guile nodoc std-site-dir],
           [useguile=yes
 	   AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
-           GUILE_SCRIPTS='$(GUILE_SCM)'
-           M4_DEFS="$M4_DEFS -DWITH_GUILE"],
+           GUILE_SCRIPTS='$(GUILE_SCM)'],
           [useguile=no])
 
 if test "$useguile" = "no"; then
@@ -106,7 +139,6 @@ fi
 AM_CONDITIONAL([GUILE_COND], [test "$useguile" = "yes"])
 
 dnl Use option --without-gpgme to NOT compile GnuPG (GPGME library) support.
-AC_SUBST(ANUBIS_GPGFILES)
 AC_ARG_WITH(gpgme,
 	AC_HELP_STRING([--without-gpgme],
 	[without GnuPG (GPGME library) support]),
@@ -122,7 +154,6 @@ fi
 if test "$with_gpgme" = "no"; then
  AC_MSG_RESULT([Disabling GPGME support...])
 else
- AC_PATH_PROG(GPG, gpg)
  findgpgmedir() { :
   if test -f "$1/include/gpgme.h"; then
    gpgmedir=1
@@ -141,8 +172,6 @@ else
  else
   AC_CHECK_HEADERS(gpgme.h)
  fi
- ANUBIS_GPGFILES='$(GPGFILES)'
- M4_DEFS="$M4_DEFS -DWITH_GPG"
 fi
 AM_CONDITIONAL([GPG_COND],[test "$with_gpgme" = "yes"])
 
@@ -180,7 +209,6 @@ MU_CHECK_GSASL(0.2.3, [
     AC_MSG_RESULT([Enabling GSASL support...])
     ANUBIS_SBIN_ADM='$(adm_sbin_programs)'
     ANUBIS_BIN_ADM='$(adm_bin_programs)'
-    M4_DEFS="$M4_DEFS -DWITH_GSASL"
 
     AC_CHECK_LIB(gdbm, gdbm_open,
                  [WITH_GDBM=yes
@@ -249,11 +277,12 @@ MU_CHECK_GSASL(0.2.3, [
     fi
 
     AC_LIBOBJ(lbuf)])
+AM_CONDITIONAL([GSASL_COND],[test "$WITH_GSASL" = yes])
 
 ANUBIS_CHECK_TLS([
- M4_DEFS="$M4_DEFS -DWITH_SSL -DWITH_GNUTLS"
  AC_DEFINE(USE_GNUTLS, 1, [Define to 1 if USE_GNUTLS is requested.])])
 AM_CONDITIONAL([TLS_COND], [test $anubis_cv_gnutls = yes])
+AC_PATH_PROG([CERTTOOL],[certtool])
 
 dnl Use option --with-socks-proxy to compile SOCKS v4/5 proxy support.
 AC_ARG_WITH(socks-proxy,
@@ -384,8 +413,7 @@ AC_CONFIG_FILES([Makefile
 
 # Initialize the test suite.
 AC_CONFIG_TESTDIR(tests)
-AC_CONFIG_FILES([tests/Makefile tests/atlocal
- tests/data/Makefile])
+AC_CONFIG_FILES([tests/Makefile tests/atlocal])
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 AC_OUTPUT

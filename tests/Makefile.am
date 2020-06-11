@@ -17,7 +17,6 @@
 EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4
 DISTCLEANFILES       = atconfig $(check_SCRIPTS)
 MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
-SUBDIRS = data
 
 ## ------------ ##
 ## package.m4.  ##

@@ -71,13 +71,10 @@ anustart --relax-perm-check --altrc etc/anubis.rc -- \
 [ignore])
 
 AT_CHECK([
-ANUBIS_PREREQ_GPG(GSASL)
 cmp etc/user.rc one.rc
 ])
 
 AT_CHECK([
-ANUBIS_PREREQ_GPG(GSASL)
-
 # Second upload:
 #  We upload the same file, running anubisusr in verbose mode.
 #  Its output should contain string "File NOT changed",
@@ -91,13 +88,10 @@ anustart --relax-perm-check --altrc etc/anubis.rc -- \
 [stderr])
 
 AT_CHECK([
-ANUBIS_PREREQ_GPG(GSASL)
 grep -q "File NOT changed" stdout
 ])
 
 AT_CHECK([
-ANUBIS_PREREQ_GPG(GSASL)
-
 # Third upload:
 #  Upload two.rc. After this test user.rc and add.rc must be identical.
 
@@ -127,12 +121,10 @@ anustart --relax-perm-check --altrc etc/anubis.rc -- \
 [ignore])
 
 AT_CHECK([
-ANUBIS_PREREQ_GPG(GSASL)
 grep -q "File changed" stdout
 ])
 
 AT_CHECK([
-ANUBIS_PREREQ_GPG(GSASL)
 cmp etc/user.rc two.rc
 ])
 

@@ -3,9 +3,8 @@
 # Copyright (C) 2020 Free Software Foundation, Inc.
 
 PATH=@abs_top_builddir@/src:$top_srcdir:$srcdir:$PATH
-confdir=@abs_builddir@/etc
-ANUBIS_DATA_DIR=@abs_builddir@/data
 GPG=@GPG@
+CERTTOOL=@CERTTOOL@
 @TLS_COND_TRUE@GNUTLS_SED='s/%TLS%//'
 @TLS_COND_FALSE@GNUTLS_SED='/%TLS%/d'
 @GPG_COND_TRUE@GPG_SED='s/%GPG%//'

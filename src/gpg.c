@@ -21,8 +21,6 @@
 #include "headers.h"
 #include "extern.h"
 #include "rcfile.h"
-
-#ifdef HAVE_GPG
 #include <gpgme.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
@@ -581,7 +579,5 @@ gpg_section_init (void)
   struct rc_secdef *sp = anubis_add_section ("RULE");
   rc_secdef_add_child (sp, &gpg_sect_child);
 }
-
-#endif /* HAVE_GPG */
 
 /* EOF */

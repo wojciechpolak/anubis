@@ -19,7 +19,11 @@ m4_define([AT_SKIP_TEST],[exit 77])
 m4_define([ANUBIS_PREREQ_CAPA],
  [anubis --show-config-options|fgrep -q $1||AT_SKIP_TEST])
 m4_define([ANUBIS_PREREQ_GPG],
- [$GPG --version >/dev/null 2>&1 || AT_SKIP_TEST])
+ [ANUBIS_PREREQ_CAPA(GPG)
+  test -n "$GPG" || AT_SKIP_TEST]) 
+m4_define([ANUBIS_PREREQ_TLS],
+ [ANUBIS_PREREQ_CAPA(GNUTLS)
+  test -n "$CERTTOOL" || AT_SKIP_TEST])
 m4_define([AT_ANUBIS_CONFIG],
 [test -d etc || mkdir etc
 cat > etc/$1 <<__EOT__

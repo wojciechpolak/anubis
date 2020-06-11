@@ -15,13 +15,28 @@
 # with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
 AT_SETUP([One-way TLS encryption])
 AT_KEYWORDS([tls])
+AT_CHECK([
+ANUBIS_PREREQ_TLS
+
+mkdir cfg
+
+AT_DATA([cfg/certtool.cfg],
+[organization = "GNU Anubis Team"
+unit = "testing"
+cn = anubis
+])
+
+$CERTTOOL -p --rsa --sec-param Low --outfile=cfg/privkey.pem || AT_SKIP_TEST
+$CERTTOOL -s --load-privkey=cfg/privkey.pem --template cfg/certtool.cfg --outfile cfg/cert.pem || AT_SKIP_TEST
+
 AT_ANUBIS_CONFIG([anubis.rc],
 [BEGIN CONTROL
 logfile $PWD/etc/anubis.log
-local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log -c $abs_srcdir/data/anubis.pem -k $abs_srcdir/data/anubis.pem
+local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log -c $PWD/cfg/cert.pem -k $PWD/cfg/privkey.pem
 ssl-oneway yes
 END
 ])
+
 AT_DATA([input],
 [EHLO localhost
 MAIL FROM:<gray@gnu.org>
@@ -42,13 +57,18 @@ hours of the morning.
 .
 QUIT
 ])
+],
+[0],
+[ignore],
+[ignore])
+
 AT_CHECK([
-ANUBIS_PREREQ_CAPA(GNUTLS)
 anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
 ],
 [0],
 [ignore],
 [ignore])
+
 AT_CHECK([diff input etc/mta.log],
 [1],
 [1a2,3

@@ -40,8 +40,6 @@ get_ehlo_domain (void)
 {
   return smtp_ehlo_domain_name ? smtp_ehlo_domain_name : get_localname ();
 }
-
-
 
 
 /* Collect and send headers */

@@ -36,9 +36,6 @@ anubis_SOURCES = \
  esmtp.c \
  exec.c \
  extern.h \
- gpg.c \
- gsasl_srv.c \
- guile.c \
  headers.h \
  help.c \
  ident.c \
@@ -64,20 +61,27 @@ anubis_SOURCES = \
  tunnel.c \
  xdatabase.c 
 
+if GSASL_COND
+  anubis_SOURCES += gsasl_srv.c
+endif
+
+if GPG_COND
+  anubis_SOURCES += gpg.c
+endif
+
+if GUILE_COND
+  anubis_SOURCES += guile.c
+endif
+
 anubisadm_SOURCES = anubisadm.c anubisadm.h adm.c
 anubisadm_LDADD = ./libanubisdb.a $(top_builddir)/lib/libanubis.a @LIBINTL@
 anubisusr_SOURCES = anubisusr.c anubisusr.h usr.c
 anubisusr_LDADD = ./libanubisdb.a $(top_builddir)/lib/libanubis.a @LIBINTL@ @LIBGNUTLS_LIBS@ @GSASL_LIBS@ 
 
-if TLS_COND
- TLS_C=tls.c
-endif
-
 libanubisdb_a_SOURCES = \
  anubisdb.c \
  dbtext.c \
  gdbm.c \
- gsasl.c \
  list.c \
  list.h \
  md5.c \
@@ -90,6 +94,14 @@ libanubisdb_a_SOURCES = \
  stream.c \
  $(TLS_C) \
  url.c 
+
+if TLS_COND
+ libanubisdb_a_SOURCES += tls.c
+endif
+
+if GSASL_COND
+ libanubisdb_a_SOURCES += gsasl.c
+endif
 
 AM_YFLAGS = -dtv
 AM_LFLAGS = -dvp

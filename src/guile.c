@@ -22,8 +22,6 @@
 #include "extern.h"
 #include "rcfile.h"
 
-#ifdef WITH_GUILE
-
 static void guile_ports_open (void);
 static void guile_ports_close (void);
 
@@ -522,7 +520,5 @@ guile_section_init (void)
   sp = anubis_add_section ("RULE");
   rc_secdef_add_child (sp, &guile_rule_secdef_child);
 }
-
-#endif /* WITH_GUILE */
 
 /* EOF */

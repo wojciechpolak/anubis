@@ -15,6 +15,27 @@
 # with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
 AT_SETUP([GPG Encryption])
 AT_KEYWORDS([gpg encrypt])
+
+AT_CHECK([
+ANUBIS_PREREQ_GPG
+mkdir gpg
+if ! $GPG --homedir gpg --quiet --no-permission-warning --batch --gen-key
+then
+    AT_SKIP_TEST
+fi <<EOT
+Key-Type: RSA
+Key-Length: 2048
+Subkey-Type: ELG-E
+Subkey-Length: 2048
+Name-Real: GNU Anubis Team
+Name-Comment: (anubis)
+Name-Email: anubis-dev@gnu.org
+Expire-Date: 0
+%no-protection
+%transient-key
+%commit
+EOT
+
 AT_ANUBIS_CONFIG([anubis.rc],
 [BEGIN CONTROL
 logfile $PWD/etc/anubis.log
@@ -22,7 +43,7 @@ local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
 END
 
 BEGIN RULE
-gpg-home $ANUBIS_DATA_DIR
+gpg-home $PWD/gpg
 
 trigger "encrypt:(.*)"
   gpg-encrypt \1
@@ -43,8 +64,12 @@ If you can read this, then it is working.
 .
 QUIT
 ])
+],
+[0],
+[ignore],
+[ignore])
+
 AT_CHECK([
-ANUBIS_PREREQ_CAPA(GPG)
 anubis --norc --relax-perm-check --altrc etc/anubis.rc --stdio < input | tr -d '\r'
 ],
 [0],
@@ -66,8 +91,7 @@ X-GPG-Comment: Encrypted for anubis-dev
 QUIT
 ])
 AT_CHECK([
-ANUBIS_PREREQ_GPG
-$GPG --homedir $ANUBIS_DATA_DIR --decrypt < etc/mta.log
+$GPG --homedir gpg --decrypt < etc/mta.log
 ],
 [0],
 [If you can read this, then it is working.

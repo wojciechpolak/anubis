@@ -20,9 +20,6 @@
 
 #include "headers.h"
 #include "extern.h"
-
-#if defined(WITH_GSASL)
-
 #include "lbuf.h"
 
 
@@ -174,5 +171,3 @@ install_gsasl_stream (Gsasl_session *sess_ctx, NET_STREAM *stream)
 		 _gsasl_read, _gsasl_write,
 		 _gsasl_close, _gsasl_destroy, _gsasl_strerror);
 }
-
-#endif
