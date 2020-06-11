@@ -278,6 +278,7 @@ MU_CHECK_GSASL(0.2.3, [
 
     AC_LIBOBJ(lbuf)])
 AM_CONDITIONAL([GSASL_COND],[test "$WITH_GSASL" = yes])
+AM_CONDITIONAL([GDBM_COND],[test "$WITH_GDBM" = yes])
 
 ANUBIS_CHECK_TLS([
  AC_DEFINE(USE_GNUTLS, 1, [Define to 1 if USE_GNUTLS is requested.])])

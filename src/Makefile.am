@@ -81,7 +81,6 @@ anubisusr_LDADD = ./libanubisdb.a $(top_builddir)/lib/libanubis.a @LIBINTL@ @LIB
 libanubisdb_a_SOURCES = \
  anubisdb.c \
  dbtext.c \
- gdbm.c \
  list.c \
  list.h \
  md5.c \
@@ -96,12 +95,17 @@ libanubisdb_a_SOURCES = \
  url.c 
 
 if TLS_COND
- libanubisdb_a_SOURCES += tls.c
+  libanubisdb_a_SOURCES += tls.c
 endif
 
 if GSASL_COND
- libanubisdb_a_SOURCES += gsasl.c
+  libanubisdb_a_SOURCES += gsasl.c
 endif
+
+if GDBM_COND
+  libanubisdb_a_SOURCES += gdbm.c
+endif
+
 
 AM_YFLAGS = -dtv
 AM_LFLAGS = -dvp

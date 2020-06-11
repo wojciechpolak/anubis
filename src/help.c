@@ -37,6 +37,9 @@ static char *config_opts[] = {
 #ifdef WITH_PGSQL
   "POSTGRES",
 #endif			        /* WITH_PGSQL */
+#ifdef HAVE_LIBGDBM
+  "GDBM",
+#endif
 #ifdef WITH_GUILE
   "GUILE",
 #endif				/* WITH_GUILE */
