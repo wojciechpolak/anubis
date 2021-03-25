@@ -21,95 +21,32 @@
 man_MANS = anubis.1
 EXTRA_DIST = $(man_MANS) pixie-dixie.pl.txt gendocs_template 
 
-RENDITION=DISTRIB
-MAKEINFOFLAGS=-D$(RENDITION)
 info_TEXINFOS = anubis.texi
-anubis_TEXINFOS = fdl.texi mime.texi pixie-dixie.texi rendition.texi
+anubis_TEXINFOS = fdl.texi mime.texi pixie-dixie.texi
+
+AM_MAKEINFOFLAGS=@IMPRIMATUR_MAKEINFOFLAGS@
+imprimatur_INPUT=$(info_TEXINFOS) $(anubis_TEXINFOS)
+include $(srcdir)/imprimatur/imprimatur.mk
+CHECK_DOCS=$(top_srcdir)/@IMPRIMATUR_MODULE_DIR@/check-docs.sh
 
 clean-local:
 	rm -rf manual
 
-GENDOCS=gendocs.sh
+GENDOCS=$(srcdir)/gendocs.sh
 
-TEXI2DVI=texi2dvi -t '@set $(RENDITION)' -E
+TEXI2DVI=texi2dvi -E
+WEBDOC_MAKEINFOFLAGS=-I $(abs_srcdir)/imprimatur
+WEBDOC_RENDITION = PUBLISH
 
 # Make sure you set TEXINPUTS
 # Usual value is:
 # /usr/share/texmf/pdftex/plain/misc:/usr/share/texmf/pdftex/config
 manual:
 	TEXINPUTS=$(srcdir):$(top_srcdir)/build:$(TEXINPUTS) \
-	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS)" \
-	 TEXI2DVI="$(TEXI2DVI) -t @finalout" \
+	 MAKEINFO="$(MAKEINFO) $(WEBDOC_MAKEINFOFLAGS) -D$(WEBDOC_RENDITION) $(MAKEINFOFLAGS)" \
+	 TEXI2DVI="$(TEXI2DVI) -t '@set $(WEBDOC_RENDITION)' -t @finalout" \
+	 TEXI2HTML="texi2html $(WEBDOC_MAKEINFOFLAGS)" \
 	$(GENDOCS) --texi2html $(PACKAGE) '$(PACKAGE_NAME) manual'
 
-# Checking
-check-format:
-	@if test -n "`cat $(info_TEXINFOS) $(anubis_TEXINFOS) | tr -d -c '\t'`"; then \
-		echo "Sources contain tabs; run make untabify"; \
-		false; \
-	fi
+manual-rebuild: clean-local manual
 
-check-refs:
-	@for file in $(info_TEXINFOS) $(anubis_TEXINFOS); \
-	do \
-	  sed -e = $$file | \
-           sed -n 'N;/@FIXME-.*ref/{s/\(^[0-9][0-9]*\).*@FIXME-.*ref{\([^}]*\)}.*/'$$file':\1: \2/gp}'; \
-	done > $@-t; \
-	if [ -s $@-t ]; then \
-	  echo "Unresolved cross-references:"; \
-	  cat $@-t;\
-	  rm $@-t; \
-	else \
-	  rm -f $@-t; \
-	fi
-
-check-fixmes:
-	@for file in $(info_TEXINFOS) $(anubis_TEXINFOS); \
-	do \
-	  sed -e = $$file | \
-           sed -n 'N;/@FIXME{/{s/\(^[0-9][0-9]*\).*@FIXME{\([^}]*\).*/'$$file':\1: \2/gp}'; \
-	done > $@-t; \
-	if [ -s $@-t ]; then \
-	  echo "Unresolved FIXMEs:"; \
-	  cat $@-t; \
-	  rm $@-t; \
-	  false; \
-	else \
-          rm -f $@-t; \
-	fi
-
-check-writeme:
-	@grep -Hn @WRITEME $(info_TEXINFOS) $(anubis_TEXINFOS) > $@-t; \
-	if [ -s $@-t ]; then \
-	  echo "Empty nodes:"; \
-	  cat $@-t; \
-	  rm $@-t; \
-	  false;\
-	else \
-          rm $@-t; \
-	fi
-
-check-unrevised:
-	@grep -Hn @UNREVISED $(info_TEXINFOS) $(anubis_TEXINFOS) > $@-t; \
-	if [ -s $@-t ]; then \
-	  echo "Unrevised nodes:"; \
-	  cat $@-t; \
-	  rm $@-t; \
-	  false;\
-	else \
-          rm $@-t; \
-	fi
-
-all-check-docs: check-format check-refs check-fixmes check-writeme \
-                check-unrevised
-
-check-docs: 
-	@$(MAKE) -k all-check-docs
-
-master-menu:
-	@emacs -batch -l mastermenu.el -f make-master-menu $(info_TEXINFOS)
-
-untabify:
-	@emacs -batch -l untabify.el $(info_TEXINFOS) $(anubis_TEXINFOS)
-
-final: untabify master-menu

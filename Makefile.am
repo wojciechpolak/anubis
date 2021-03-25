@@ -18,7 +18,7 @@
 ## with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-ACLOCAL_AMFLAGS = -I m4 -I am -I gint
+ACLOCAL_AMFLAGS = -I m4 -I am -I gint -I doc/imprimatur
 SUBDIRS = build lib gint src po doc scripts examples guile contrib \
 	  elisp tests 
 

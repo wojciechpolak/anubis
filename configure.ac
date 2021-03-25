@@ -126,6 +126,8 @@ dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-formatstring-macros])
 AM_GNU_GETTEXT_VERSION([0.16])
 
+IMPRIMATUR_INIT(doc/imprimatur)
+
 AC_SUBST([GUILE_SCRIPTS])
 GINT_INIT([gint],[2.2.0 with-guile nodoc std-site-dir],
           [useguile=yes

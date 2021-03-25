@@ -1291,7 +1291,6 @@ All option names are case insensitive, so that
 
 @node Basic Settings
 @subsection Basic Settings
-@UNREVISED{}
 
 @deffn Option bind [@var{host}:]@var{port}
 Specify the @acronym{TCP} port on which GNU Anubis listens for connections.
