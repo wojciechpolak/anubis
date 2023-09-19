@@ -26,10 +26,10 @@
 
 typedef int (*operation_fp) (int, char **);
 
-char *authid;
-char *username;
-char *rcfile;
-char *password;
+extern char *authid;
+extern char *username;
+extern char *rcfile;
+extern char *password;
 
 int op_create (int argc, char **argv);
 int op_list (int argc, char **argv);
