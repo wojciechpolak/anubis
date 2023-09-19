@@ -22,15 +22,13 @@
 #endif
 
 #include <string.h>		/* for memcpy() */
+#include <stdint.h>
 #include <unistd.h>
-
-/* FIXME: should be configurable */
-typedef unsigned long anubis_uint32_t;
 
 struct MD5Context
 {
-  anubis_uint32_t buf[4];
-  anubis_uint32_t bits[2];
+  uint32_t buf[4];
+  uint32_t bits[2];
   unsigned char in[64];
 };
 
@@ -39,12 +37,12 @@ static void anubis_MD5Update (struct MD5Context *context,
 			      unsigned char const *buf, unsigned len);
 static void anubis_MD5Final (unsigned char digest[16],
 			     struct MD5Context *context);
-static void anubis_MD5Transform (anubis_uint32_t buf[4],
-				 anubis_uint32_t const in[16]);
+static void anubis_MD5Transform (uint32_t buf[4],
+				 uint32_t const in[16]);
 
 
 static void
-bytes_encode (unsigned char *output, anubis_uint32_t * input,
+bytes_encode (unsigned char *output, uint32_t * input,
 	      unsigned int len)
 {
   unsigned int i, j;
@@ -59,16 +57,16 @@ bytes_encode (unsigned char *output, anubis_uint32_t * input,
 }
 
 static void
-bytes_decode (anubis_uint32_t * output, unsigned char *input,
+bytes_decode (uint32_t * output, unsigned char *input,
 	      unsigned int len)
 {
   unsigned int i, j;
 
   for (i = 0, j = 0; j < len; i++, j += 4)
-    output[i] = ((anubis_uint32_t) input[j]) |
-      (((anubis_uint32_t) input[j + 1]) << 8) |
-      (((anubis_uint32_t) input[j + 2]) << 16) |
-      (((anubis_uint32_t) input[j + 3]) << 24);
+    output[i] = ((uint32_t) input[j]) |
+      (((uint32_t) input[j + 1]) << 8) |
+      (((uint32_t) input[j + 2]) << 16) |
+      (((uint32_t) input[j + 3]) << 24);
 }
 
 /*
@@ -95,12 +93,12 @@ static void
 anubis_MD5Update (struct MD5Context *ctx, unsigned char const *buf,
 		  unsigned len)
 {
-  anubis_uint32_t t;
+  uint32_t t;
 
   /* Update bitcount */
 
   t = ctx->bits[0];
-  if ((ctx->bits[0] = t + ((anubis_uint32_t) len << 3)) < t)
+  if ((ctx->bits[0] = t + ((uint32_t) len << 3)) < t)
     ctx->bits[1]++;		/* Carry from low to high */
   ctx->bits[1] += len >> 29;
 
@@ -117,7 +115,7 @@ anubis_MD5Update (struct MD5Context *ctx, unsigned char const *buf,
 	  return;
 	}
       memcpy (p, buf, t);
-      anubis_MD5Transform (ctx->buf, (anubis_uint32_t *) ctx->in);
+      anubis_MD5Transform (ctx->buf, (uint32_t *) ctx->in);
       buf += t;
       len -= t;
     }
@@ -126,7 +124,7 @@ anubis_MD5Update (struct MD5Context *ctx, unsigned char const *buf,
   while (len >= 64)
     {
       memcpy (ctx->in, buf, 64);
-      anubis_MD5Transform (ctx->buf, (anubis_uint32_t const *) buf);
+      anubis_MD5Transform (ctx->buf, (uint32_t const *) buf);
       buf += 64;
       len -= 64;
     }
@@ -162,7 +160,7 @@ anubis_MD5Final (unsigned char digest[16], struct MD5Context *ctx)
     {
       /* Two lots of padding:  Pad the first block to 64 bytes */
       memset (p, 0, count);
-      anubis_MD5Transform (ctx->buf, (anubis_uint32_t *) ctx->in);
+      anubis_MD5Transform (ctx->buf, (uint32_t *) ctx->in);
 
       /* Now fill the next block with 56 bytes */
       memset (ctx->in, 0, 56);
@@ -174,9 +172,9 @@ anubis_MD5Final (unsigned char digest[16], struct MD5Context *ctx)
     }
 
   /* Append length in bits and transform */
-  bytes_encode ((unsigned char *) ((anubis_uint32_t *) ctx->in + 14),
+  bytes_encode ((unsigned char *) ((uint32_t *) ctx->in + 14),
 		ctx->bits, 8);
-  anubis_MD5Transform (ctx->buf, (anubis_uint32_t *) ctx->in);
+  anubis_MD5Transform (ctx->buf, (uint32_t *) ctx->in);
   bytes_encode (digest, ctx->buf, 16);
   memset ((char *) ctx, 0, sizeof (ctx));	/* In case it's sensitive */
 }
@@ -212,10 +210,10 @@ dump (char *label, unsigned char *p, int len)
  * the data and converts bytes into longwords for this routine.
  */
 static void
-anubis_MD5Transform (anubis_uint32_t buf[4], anubis_uint32_t const cin[16])
+anubis_MD5Transform (uint32_t buf[4], uint32_t const cin[16])
 {
-  register anubis_uint32_t a, b, c, d;
-  anubis_uint32_t in[16];
+  register uint32_t a, b, c, d;
+  uint32_t in[16];
 
   bytes_decode (in, (unsigned char *) cin, 64);
 
