@@ -18,13 +18,13 @@ dnl with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ([2.64])
 AC_INIT([GNU Anubis], [4.2.90], [bug-anubis@gnu.org])
-AC_PREREQ([2.63])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE([1.11 gnits tar-ustar dist-bzip2 std-options silent-rules])
-AC_GNU_SOURCE
+AM_INIT_AUTOMAKE([1.16 gnits tar-ustar dist-bzip2 std-options silent-rules])
+AC_USE_SYSTEM_EXTENSIONS
 
 dnl Enable silent rules by default:
 AM_SILENT_RULES([yes])
@@ -33,7 +33,7 @@ dnl Checks for programs.
 AC_PROG_CC
 gl_EARLY
 AC_PROG_YACC
-AM_PROG_LEX
+AC_PROG_LEX([noyywrap])
 AC_PATH_PROG(idecrypt_path,idecrypt,/usr/sbin/idecrypt,
 $PATH:/sbin:/usr/sbin:/usr/local/sbin)
 AC_DEFINE_UNQUOTED(IDECRYPT_PATH,"${idecrypt_path}",
@@ -75,11 +75,8 @@ done
 AC_MSG_RESULT([${GPG:-none}${GPG:+, $GPG_VERSION_STRING}])
 AM_CONDITIONAL([COND_GPG2],[test -n "$GPG"])
 
-dnl Checks for header files.
-AC_HEADER_STDC
 AC_TYPE_SIZE_T
 AC_TYPE_PID_T
-AC_TYPE_SIGNAL
 AC_CHECK_TYPE(u_char, unsigned char)
 AC_CHECK_HEADERS(arpa/inet.h sys/types.h sys/socket.h socket.h locale.h)
 
@@ -104,15 +101,6 @@ AC_CHECK_FUNCS(getrlimit setrlimit socketpair)
 AC_CHECK_FUNCS(setegid setregid setresgid seteuid setreuid)
 AC_CHECK_FUNCS(daemon putenv)
 
-AC_FUNC_SETVBUF_REVERSED
-AH_BOTTOM([
-#if defined (SETVBUF_REVERSED)
-# define SETVBUF(str,buf,mode,size) setvbuf(str,mode,buf,size)
-#else
-# define SETVBUF(str,buf,mode,size) setvbuf(str,buf,mode,size)
-#endif
-])
-
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(nsl, gethostbyaddr)
 
@@ -124,7 +112,7 @@ esac
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-formatstring-macros])
-AM_GNU_GETTEXT_VERSION([0.16])
+AM_GNU_GETTEXT_VERSION([0.21])
 
 IMPRIMATUR_INIT(doc/imprimatur)
 
@@ -142,8 +130,7 @@ AM_CONDITIONAL([GUILE_COND], [test "$useguile" = "yes"])
 
 dnl Use option --without-gpgme to NOT compile GnuPG (GPGME library) support.
 AC_ARG_WITH(gpgme,
-	AC_HELP_STRING([--without-gpgme],
-	[without GnuPG (GPGME library) support]),
+	AS_HELP_STRING([--without-gpgme],[without GnuPG (GPGME library) support]),
 	[with_gpgme=${withval}],
 	[with_gpgme=yes])
 if test "$with_gpgme" = "no"; then
@@ -189,8 +176,7 @@ AC_SUBST(ANUBIS_BIN_ADM)
 
 dnl Use option --enable-gcc-debug to enable GCC debug code.
 AC_ARG_ENABLE(gcc-debug,
-	AC_HELP_STRING([--enable-gcc-debug],
-	[enable GCC DEBUG code]),
+	AS_HELP_STRING([--enable-gcc-debug],[enable GCC DEBUG code]),
 	[enable_gcc_debug=yes],
 	[enable_gcc_debug=no])
 if test "$enable_gcc_debug" = "yes" && (test "$GCC" = "yes"); then
@@ -219,8 +205,7 @@ MU_CHECK_GSASL(0.2.3, [
                  [AC_MSG_RESULT([Disabling GDBM support...])])
 
     AC_ARG_WITH(mysql,
-	AC_HELP_STRING([--with-mysql],
-	[Configure to work with MySQL]),
+	AS_HELP_STRING([--with-mysql],[Configure to work with MySQL]),
 	[case $withval in
 	 yes)  USE_SQL=0
                ANUBIS_CHECK_LIB(mysqlclient, 
@@ -248,8 +233,7 @@ MU_CHECK_GSASL(0.2.3, [
         esac])
 
     AC_ARG_WITH(postgres,
-	AC_HELP_STRING([--with-postgres],
-	[Configure to work with Postgres]),
+	AS_HELP_STRING([--with-postgres],[Configure to work with Postgres]),
 	[case $withval in
 	yes)	USE_SQL=0
                 ANUBIS_CHECK_LIB(pq,
@@ -289,8 +273,7 @@ AC_PATH_PROG([CERTTOOL],[certtool])
 
 dnl Use option --with-socks-proxy to compile SOCKS v4/5 proxy support.
 AC_ARG_WITH(socks-proxy,
-	AC_HELP_STRING([--with-socks-proxy],
-	[with SOCKS v4/5 proxy support]),
+	AS_HELP_STRING([--with-socks-proxy],[with SOCKS v4/5 proxy support]),
 	[with_socks_proxy=${withval}],
 	[with_socks_proxy=no])
 if test "$with_socks_proxy" = "yes"; then
@@ -300,8 +283,7 @@ fi
 
 dnl Use option --with-pcre to compile PCRE library support.
 AC_ARG_WITH(pcre,
-	AC_HELP_STRING([--with-pcre],
-	[with PCRE library support]),
+	AS_HELP_STRING([--with-pcre],[with PCRE library support]),
 	[with_pcre=${withval}],
 	[with_pcre=no])
 if test "$with_pcre" = "yes"; then
@@ -314,8 +296,7 @@ fi
 
 dnl Use option --with-pam to compile PAM support.
 AC_ARG_WITH(pam,
-	AC_HELP_STRING([--with-pam],
-	[with Pluggable Authentication Modules support]),
+	AS_HELP_STRING([--with-pam],[with Pluggable Authentication Modules support]),
 	[with_pam=${withval}],
 	[with_pam=no])
 if test "$with_pam" = "yes"; then
@@ -329,8 +310,7 @@ fi
 
 dnl Use option --with-tcp-wrappers to compile libwrap library support.
 AC_ARG_WITH(tcp-wrappers,
-	AC_HELP_STRING([--with-tcp-wrappers],
-	[with libwrap (TCP wrappers) support]),
+	AS_HELP_STRING([--with-tcp-wrappers],[with libwrap (TCP wrappers) support]),
 	[with_tcp_wrappers=${withval}],
 	[with_tcp_wrappers=no])
 if test "$with_tcp_wrappers" = "yes"; then
@@ -344,8 +324,7 @@ fi
 
 dnl Use option --with-unprivileged-user
 AC_ARG_WITH(unprivileged-user,
-	AC_HELP_STRING([--with-unprivileged-user=USER],
-	[set an unprivileged user (default is "nobody")]))
+	AS_HELP_STRING([--with-unprivileged-user=USER],[set an unprivileged user (default is "nobody")]))
 if test -z "$with_unprivileged_user"; then
  with_unprivileged_user="nobody"
 fi

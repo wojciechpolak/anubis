@@ -82,7 +82,7 @@ static int
 open_socket (int *p_local_port, int max_port)
 {
   int fd;
-  int true = 1;
+  int t = 1;
   struct sockaddr_in sin;
   int local_port;
   
@@ -97,7 +97,7 @@ open_socket (int *p_local_port, int max_port)
       return -1;
     }
 
-  setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &true, sizeof (true));
+  setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &t, sizeof (t));
 
   local_port = *p_local_port;
   while (++local_port < max_port)

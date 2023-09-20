@@ -337,23 +337,23 @@ cond     : expr
          | cond AND cond
            {
 	     $$ = rc_node_create (rc_node_bool, &@2.beg);
-	     $$->v.bool.op = bool_and;
-	     $$->v.bool.left = $1;
-	     $$->v.bool.right = $3;
+	     $$->v.vbool.op = bool_and;
+	     $$->v.vbool.left = $1;
+	     $$->v.vbool.right = $3;
 	   }
          | cond OR cond
            {
 	     $$ = rc_node_create (rc_node_bool, &@2.beg);
-	     $$->v.bool.op = bool_or;
-	     $$->v.bool.left = $1;
-	     $$->v.bool.right = $3;
+	     $$->v.vbool.op = bool_or;
+	     $$->v.vbool.left = $1;
+	     $$->v.vbool.right = $3;
 	   }
          | NOT cond
            {
 	     $$ = rc_node_create (rc_node_bool, &@1.beg);
-	     $$->v.bool.op = bool_not;
-	     $$->v.bool.left = $2;
-	     $$->v.bool.right = NULL;
+	     $$->v.vbool.op = bool_not;
+	     $$->v.vbool.left = $2;
+	     $$->v.vbool.right = NULL;
 	   }
          ;
 
@@ -458,19 +458,19 @@ string_key: /* empty */
 expr     : s_msgpart opt_sep meq opt_modlist string
            {
 	     RC_NODE *node = rc_node_create (rc_node_expr, &@1.beg);
-	     node->v.expr.part = $1.part;
-	     node->v.expr.key = $1.string;
-	     node->v.expr.sep = $2;
-	     node->v.expr.re = anubis_regex_compile ($5, $4);
+	     node->v.vexpr.part = $1.part;
+	     node->v.vexpr.key = $1.string;
+	     node->v.vexpr.sep = $2;
+	     node->v.vexpr.re = anubis_regex_compile ($5, $4);
 	     free ($5);
 	     if ($3)
 	       $$ = node;
 	     else
 	       {
 		 $$ = rc_node_create (rc_node_bool, &@1.beg);
-		 $$->v.bool.op = bool_not;
-		 $$->v.bool.left = node;
-		 $$->v.bool.right = NULL;
+		 $$->v.vbool.op = bool_not;
+		 $$->v.vbool.left = node;
+		 $$->v.vbool.right = NULL;
 	       }
 	   }
          ;
@@ -520,9 +520,9 @@ rule_stmt: rule_start EOL stmtlist DONE
 rule_start: rule opt_modlist string
            {
 	     $$ = rc_node_create (rc_node_expr, &@1.beg);
-	     $$->v.expr.part = HEADER;
-	     $$->v.expr.key = strdup (X_ANUBIS_RULE_HEADER);
-	     $$->v.expr.re = anubis_regex_compile ($3, $2);
+	     $$->v.vexpr.part = HEADER;
+	     $$->v.vexpr.key = strdup (X_ANUBIS_RULE_HEADER);
+	     $$->v.vexpr.re = anubis_regex_compile ($3, $2);
 	     free ($3);
 	   }
          ;
@@ -956,10 +956,10 @@ rc_asgn_destroy (RC_ASGN *asgn)
 /* Bools */
 
 void
-rc_bool_destroy (RC_BOOL *bool)
+rc_bool_destroy (RC_BOOL *b)
 {
-  rc_node_destroy (bool->left);
-  rc_node_destroy (bool->right);
+  rc_node_destroy (b->left);
+  rc_node_destroy (b->right);
 }
 
 /* Nodes */
@@ -983,12 +983,12 @@ rc_node_destroy (RC_NODE *node)
   switch (node->type)
     {
     case rc_node_bool:
-      rc_bool_destroy (&node->v.bool);
+      rc_bool_destroy (&node->v.vbool);
       break;
     
     case rc_node_expr:
-      free (node->v.expr.key);
-      anubis_regex_free (&node->v.expr.re);
+      free (node->v.vexpr.key);
+      anubis_regex_free (&node->v.vexpr.re);
     }
   rc_destroy_loc (&node->loc);
   xfree (node);
@@ -1018,37 +1018,37 @@ rc_node_print (RC_NODE *node)
   switch (node->type)
     {
     case rc_node_expr:
-      printf ("%s", part_string (node->v.expr.part));
-      if (node->v.expr.key && node->v.expr.key[0] != '\n')
-	printf ("[%s]",node->v.expr.key);
-      if (node->v.expr.sep)
-	printf ("(%s)", node->v.expr.sep);
+      printf ("%s", part_string (node->v.vexpr.part));
+      if (node->v.vexpr.key && node->v.vexpr.key[0] != '\n')
+	printf ("[%s]",node->v.vexpr.key);
+      if (node->v.vexpr.sep)
+	printf ("(%s)", node->v.vexpr.sep);
       printf (" ");
-      anubis_regex_print (node->v.expr.re);
+      anubis_regex_print (node->v.vexpr.re);
       break;
 		
     case rc_node_bool:
-      switch (node->v.bool.op)
+      switch (node->v.vbool.op)
 	{
 	case bool_not:
 	  printf ("NOT (");
-	  rc_node_print (node->v.bool.left);
+	  rc_node_print (node->v.vbool.left);
 	  printf (")");
 	  break;
       
 	case bool_and:
 	  printf ("AND (");
-	  rc_node_print (node->v.bool.left);
+	  rc_node_print (node->v.vbool.left);
 	  printf (",");
-	  rc_node_print (node->v.bool.right);
+	  rc_node_print (node->v.vbool.right);
 	  printf (")");
 	  break;
       
 	case bool_or:
 	  printf ("OR (");
-	  rc_node_print (node->v.bool.left);
+	  rc_node_print (node->v.vbool.left);
 	  printf (",");
-	  rc_node_print (node->v.bool.right);
+	  rc_node_print (node->v.vbool.right);
 	  printf (")");
 	  break;
 	}
@@ -1471,7 +1471,7 @@ eval_warning (struct eval_env *env, const char *fmt, ...)
 
 static void asgn_eval (struct eval_env *env, RC_ASGN *asgn);
 static int node_eval (struct eval_env *env, RC_NODE *node);
-static int bool_eval (struct eval_env *env, RC_BOOL *bool);
+static int bool_eval (struct eval_env *env, RC_BOOL *b);
 static void cond_eval (struct eval_env *env, RC_COND *cond);
 static void rule_eval (struct eval_env *env, RC_RULE *rule);
 static void stmt_list_eval (struct eval_env *env, RC_STMT *stmt);
@@ -1713,11 +1713,11 @@ node_eval (struct eval_env *env, RC_NODE *node)
   switch (node->type)
     {
     case rc_node_bool:
-      rc = bool_eval (env, &node->v.bool);
+      rc = bool_eval (env, &node->v.vbool);
       break;
     
     case rc_node_expr:
-      rc = expr_eval (env, &node->v.expr);
+      rc = expr_eval (env, &node->v.vexpr);
       break;
     
     default:
@@ -1728,11 +1728,11 @@ node_eval (struct eval_env *env, RC_NODE *node)
 }
 
 int
-bool_eval (struct eval_env *env, RC_BOOL *bool)
+bool_eval (struct eval_env *env, RC_BOOL *bv)
 {
-  int rc = node_eval (env, bool->left);
+  int rc = node_eval (env, bv->left);
 
-  switch (bool->op)
+  switch (bv->op)
     {
     case bool_not:
       return !rc;
@@ -1747,7 +1747,7 @@ bool_eval (struct eval_env *env, RC_BOOL *bool)
 	return 1;
       break;
     }
-  return node_eval (env, bool->right);
+  return node_eval (env, bv->right);
 }
 
 void

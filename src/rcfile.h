@@ -113,10 +113,9 @@ struct rc_node
   enum rc_node_type type;	/* Node type */
   union
   {
-    RC_EXPR expr;
-    RC_BOOL bool;
-  }
-  v;
+    RC_EXPR vexpr;
+    RC_BOOL vbool;
+  } v;
 };
 
 struct rc_cond

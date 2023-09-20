@@ -105,7 +105,7 @@ proclist_cleanup (void (*fun) (size_t, pid_t, int))
 }
 
 /* SIGCHLD handler. */
-static RETSIGTYPE
+static void
 sig_child (int code)
 {
   struct process_status ps;

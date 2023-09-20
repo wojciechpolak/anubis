@@ -497,8 +497,8 @@ void rc_disable_keyword (int mask, const char *kw);
 void print_config_options (void);
 
 /* quit.c */
-RETSIGTYPE sig_exit (int);
-RETSIGTYPE sig_timeout (int);
+void sig_exit (int);
+void sig_timeout (int);
 void free_mem (void);
 void quit (int);
 

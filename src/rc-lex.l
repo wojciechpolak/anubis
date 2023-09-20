@@ -1,4 +1,4 @@
-%{
+%top{
 /*
    rcfile.l
 
@@ -29,7 +29,9 @@
 #include "extern.h"
 #include "rcfile.h"
 #include "rc-gram.h"	
+}
 
+%{
 struct string_list
 {
   struct string_list *next;

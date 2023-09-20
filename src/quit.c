@@ -21,14 +21,14 @@
 #include "headers.h"
 #include "extern.h"
 
-RETSIGTYPE
+void
 sig_exit (int code)
 {
   info (NORMAL, _("Signal Caught. Exiting Cleanly..."));
   quit (code);
 }
 
-RETSIGTYPE
+void
 sig_timeout (int code)
 {
   info (NORMAL, _("Timeout! Exiting..."));

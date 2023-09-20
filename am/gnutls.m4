@@ -18,7 +18,7 @@ AC_SUBST(LIBGNUTLS_LIBS)
 AC_SUBST(LIBGNUTLS_INCLUDES)
 AC_DEFUN([ANUBIS_CHECK_TLS],[
  AC_ARG_WITH([gnutls],
-             AC_HELP_STRING([--with-gnutls],
+             AS_HELP_STRING([--with-gnutls],
                             [use GNU TLS library]),
              [anubis_cv_gnutls=$withval],
              [anubis_cv_gnutls=yes],

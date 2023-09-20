@@ -84,7 +84,7 @@ main (int argc, char *argv[])
      Process the command line options.
    */
 
-  SETVBUF (stderr, NULL, _IOLBF, 0);
+  setvbuf (stderr, NULL, _IOLBF, 0);
   get_options (argc, argv);
   anubis_getlogin (&session.supervisor);
   assign_string (&incoming_mail_rule, "INCOMING");

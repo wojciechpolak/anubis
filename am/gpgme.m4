@@ -25,7 +25,7 @@ dnl Test for libgpgme and define GPGME_CFLAGS and GPGME_LIBS
 dnl
 AC_DEFUN([AM_PATH_GPGME],
 [ AC_ARG_WITH(gpgme-prefix,
-            AC_HELP_STRING([--with-gpgme-prefix=PFX],
+            AS_HELP_STRING([--with-gpgme-prefix=PFX],
                            [prefix where GPGME is installed (optional)]),
      gpgme_config_prefix="$withval", gpgme_config_prefix="")
   if test x$gpgme_config_prefix != x ; then
