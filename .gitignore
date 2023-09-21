@@ -5,12 +5,14 @@
 *~
 .deps
 .emacs*
+.gdbinit
 ABOUT-NLS
 COPYING
 ChangeLog
 INSTALL
 Makefile
 Makefile.in
+TAGS
 aclocal.m4
 autom4te.cache
 config.h
@@ -18,5 +20,7 @@ config.h.in
 config.log
 config.status
 configure
+core
+gnulib
 m4
 stamp-h1

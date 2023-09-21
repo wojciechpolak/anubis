@@ -18,8 +18,14 @@
 ## with GNU Anubis.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
+MOSTLYCLEANFILES =
+BUILT_SOURCES =
+MOSTLYCLEANDIRS =
+AM_CPPFLAGS =
+noinst_LIBRARIES =
+EXTRA_DIST = 
+
 include gnulib.mk
-EXTRA_DIST += argcv.c argcv.h lbuf.c lbuf.h keyword.c keyword.h
 
 libanubis_a_SOURCES += \
  argv.c\

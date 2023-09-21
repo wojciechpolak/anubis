@@ -28,6 +28,7 @@ AM_MAKEINFOFLAGS=@IMPRIMATUR_MAKEINFOFLAGS@
 imprimatur_INPUT=$(info_TEXINFOS) $(anubis_TEXINFOS)
 include $(srcdir)/imprimatur/imprimatur.mk
 CHECK_DOCS=$(top_srcdir)/@IMPRIMATUR_MODULE_DIR@/check-docs.sh
+SUBDIRS = imprimatur
 
 clean-local:
 	rm -rf manual

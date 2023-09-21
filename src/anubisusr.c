@@ -28,7 +28,6 @@ char *smtp_host = "localhost";
 int smtp_port = 24;
 char *rcfile_name = NULL;
 char *netrc_name = NULL;
-struct obstack input_stk;
 
 int verbose;
 
@@ -854,7 +853,6 @@ synch (void)
   ANUBIS_SMTP_REPLY repl;
   char *rcname;
 
-  obstack_init (&input_stk);
   init_ssl_libs ();
 
   VDETAIL (1, (_("Using remote SMTP %s:%d\n"), smtp_host, smtp_port));
