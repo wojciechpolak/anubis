@@ -31,7 +31,7 @@ static const char xlet[] = "0123456789ABCDEF";
 
 /* Convert @var{input} from binary to hex representation.
 
-   Output should be at least 2*inlen bytes long
+   Output should be at least 2*inlen + 1 bytes long
  */
 static void
 string_bin_to_hex (unsigned char *output, unsigned char *input, int inlen)
@@ -43,6 +43,7 @@ string_bin_to_hex (unsigned char *output, unsigned char *input, int inlen)
       output[i << 1] = xlet[input[i] >> 4];
       output[(i << 1) + 1] = xlet[input[i] & 0x0f];
     }
+  output[i << 1] = 0;
 }
 
 int
@@ -94,7 +95,7 @@ anubis_md5_file (int fd, unsigned char **out_digest, char const **err)
       return -1;
     }
   gnutls_hash_deinit (dig, digest);
-  out = malloc (2 * len);
+  out = malloc (2 * len + 1);
   if (!out)
     {
       if (err)
