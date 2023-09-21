@@ -1,7 +1,7 @@
 /*
    anubisusr.c
    
-   Copyright (C) 2004-2020 The Anubis Team.
+   Copyright (C) 2004-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -19,10 +19,8 @@
 
 #include <anubisusr.h>
 
-#ifdef USE_GNUTLS
 struct secure_struct secure;
 int enable_tls = 1;
-#endif /* USE_GNUTLS */
 
 char *progname;
 
@@ -63,9 +61,6 @@ error (const char *fmt, ...)
 
 NET_STREAM iostream;
 
-
-#ifdef USE_GNUTLS
-
 void
 info (int mode, const char *fmt, ...)
 {
@@ -115,7 +110,6 @@ starttls (void)
       exit (1);
     }
 }
-#endif /* USE_GNUTLS */
 
 
 /* Auxiliary functions */
@@ -771,9 +765,9 @@ int
 diff (char *file, ANUBIS_SMTP_REPLY repl)
 {
   const char *input = smtp_reply_line (repl, 0) + 4;
-  unsigned char sample[MD5_DIGEST_BYTES];
-  unsigned char digest[MD5_DIGEST_BYTES];
-  int len;
+  unsigned char *digest;
+  char const *err;
+  int rc;
   int fd;
 
   fd = open (file, O_RDONLY);
@@ -782,19 +776,18 @@ diff (char *file, ANUBIS_SMTP_REPLY repl)
       error (_("Cannot open file %s: %s"), file, strerror (errno));
       return CMP_ERROR;
     }
-  anubis_md5_file (digest, fd);
+  rc = anubis_md5_file (fd, &digest, &err);
   close (fd);
 
-  len = strlen (input);
-  if (len != sizeof digest * 2)
+  if (rc)
     {
-      error (_("Invalid MD5 digest: %s"), input);
+      error (_("Can't compute file digest: %s"), err);
       return CMP_ERROR;
     }
-  string_hex_to_bin (sample, (unsigned char*)input, len);
-
-  return memcmp (digest, sample, sizeof digest) == 0 ?
-                 CMP_UNCHANGED : CMP_CHANGED;
+  
+  rc = strcasecmp ((char*)digest, input) == 0 ? CMP_UNCHANGED : CMP_CHANGED;
+  free (digest);
+  return rc;
 }
 
 void
@@ -857,9 +850,7 @@ synch (void)
   char *rcname;
 
   obstack_init (&input_stk);
-#ifdef USE_GNUTLS
   init_ssl_libs ();
-#endif
 
   VDETAIL (1, (_("Using remote SMTP %s:%d\n"), smtp_host, smtp_port));
   if (parse_host (smtp_host, smtp_port, &addr))
@@ -894,13 +885,11 @@ synch (void)
 
   smtp_ehlo (1);
 
-#ifdef USE_GNUTLS
   if (enable_tls && smtp_reply_has_capa (smtp_capa, "STARTTLS", NULL))
     {
       starttls ();
       smtp_ehlo (0);
     }
-#endif
 
   smtp_auth ();
   /* Get the capabilities */
@@ -913,7 +902,6 @@ synch (void)
       smtp_quit ();
       return 1;
     }
-
   
   send_line ("XDATABASE EXAMINE");
   smtp_get_reply (repl);

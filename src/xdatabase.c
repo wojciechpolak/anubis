@@ -2,7 +2,7 @@
    xdatabase.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2004-2020 The Anubis Team.
+   Copyright (C) 2004-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -28,7 +28,7 @@
 static int xdatabase_active = 0;
 
 void
-xdatabase_enable ()
+xdatabase_enable (void)
 {
   xdatabase_active = 1;
 }
@@ -106,7 +106,7 @@ _xdb_error_printer (void *data,
 }
 
 static void
-xupload ()
+xupload (void)
 {
   char *tempname;
   FILE *tempfile;
@@ -179,7 +179,7 @@ xupload ()
 }
 
 static void
-xremove ()
+xremove (void)
 {
   char *rcname = user_rcfile_name ();
   if (unlink (rcname) && errno != ENOENT)
@@ -192,7 +192,7 @@ xremove ()
 }
 
 static void
-xexamine ()
+xexamine (void)
 {
   char *rcname = user_rcfile_name ();
   int fd = open (rcname, O_RDONLY);
@@ -209,17 +209,25 @@ xexamine ()
     }
   else
     {
-      unsigned char digest[MD5_DIGEST_BYTES];
-      unsigned char hex[2*MD5_DIGEST_BYTES+1];
+      unsigned char *digest;
+      char const *err;
+      int rc;
       
-      anubis_md5_file (digest, fd);
+      rc = anubis_md5_file (fd, &digest, &err);
       close (fd);
-
-      memset (hex, 0, sizeof hex); 
-      string_bin_to_hex (hex, digest, sizeof digest);
-      swrite (SERVER, remote_client, "250 ");
-      swrite (SERVER, remote_client, (char*) hex);
-      swrite (SERVER, remote_client, CRLF);
+      if (rc)
+	{
+	  anubis_error (0, 0, _("Can't compute md5 hash of %s: %s"), rcname,
+			err);
+	  swrite (SERVER, remote_client, "450 Cannot compute hash" CRLF);
+	}
+      else
+	{
+	  swrite (SERVER, remote_client, "250 ");
+	  swrite (SERVER, remote_client, (char*) digest);
+	  swrite (SERVER, remote_client, CRLF);
+	  free (digest);
+	}
     }
   free (rcname);
 }

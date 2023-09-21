@@ -2,7 +2,7 @@
    headers.h
 
    This file is part of GNU Anubis.
-   Copyright (C) 2001-2020 The Anubis Team.
+   Copyright (C) 2001-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -643,12 +643,8 @@ int xdatabase (char *command);
 void xdatabase_capability (ANUBIS_SMTP_REPLY reply);
 void xdatabase_enable (void);
 
-/* md5.c */
-int anubis_md5_file (unsigned char *digest, int fd);
-void string_bin_to_hex (unsigned char *output, unsigned char *input, int inlen);
-int string_hex_to_bin (unsigned char *output, unsigned char *input, int inlen);
-
-#define MD5_DIGEST_BYTES 16
+/* md5sum.c */
+int anubis_md5_file (int fd, unsigned char **out_digest, char const **err);
 
 /* mda.c */
 void mda (void);

@@ -2,7 +2,7 @@
    authmode.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2003-2020 The Anubis Team.
+   Copyright (C) 2003-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -450,7 +450,9 @@ xdb_loop (void)
 
   info (VERBOSE, _("Entering XDB loop..."));
 
+#ifdef USE_GNUTLS
   asmtp_capa_add ("XDATABASE");
+#endif
   while (recvline (SERVER, remote_client, &command, &s) > 0)
     {
       switch (asmtp_kw (get_command_word (command))) {

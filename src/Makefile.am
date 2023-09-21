@@ -2,7 +2,7 @@
 ## src/Makefile.am
 ##
 ## This file is part of GNU Anubis.
-## Copyright (C) 2001-2020 The Anubis Team.
+## Copyright (C) 2001-2023 The Anubis Team.
 ##
 ## GNU Anubis is free software; you can redistribute it and/or modify it
 ## under the terms of the GNU General Public License as published by the
@@ -19,7 +19,8 @@
 ##
 
 adm_sbin_programs = anubisadm 
-adm_bin_programs = anubisusr
+adm_bin_programs =
+
 sbin_PROGRAMS = anubis @ANUBIS_SBIN_ADM@
 bin_PROGRAMS = @ANUBIS_BIN_ADM@
 EXTRA_PROGRAMS = $(adm_bin_programs) $(adm_sbin_programs)
@@ -58,8 +59,7 @@ anubis_SOURCES = \
  regex.c \
  socks.c \
  transmode.c \
- tunnel.c \
- xdatabase.c 
+ tunnel.c
 
 if GSASL_COND
   anubis_SOURCES += gsasl_srv.c
@@ -83,7 +83,6 @@ libanubisdb_a_SOURCES = \
  dbtext.c \
  list.c \
  list.h \
- md5.c \
  mysql.c \
  pgsql.c \
  sql.h \
@@ -91,11 +90,13 @@ libanubisdb_a_SOURCES = \
  smtprepl.c \
  smtprepl.h \
  stream.c \
- $(TLS_C) \
  url.c 
 
 if TLS_COND
-  libanubisdb_a_SOURCES += tls.c
+  libanubisdb_a_SOURCES += tls.c md5sum.c xdatabase.c
+  adm_bin_programs += anubisusr
+else
+  libanubisdb_a_SOURCES += notls.c
 endif
 
 if GSASL_COND

@@ -14,7 +14,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2011, 2014
+Copyright @copyright{} 2001--2023
 Wojciech Polak and Sergey Poznyakoff.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -954,10 +954,12 @@ commands.
 @subsection Users
 
 Users maintain their database records via the @command{anubisusr}
-command. We suggest invoking
-@command{anubisusr} from your @file{~/.profile}, which will make
-sure that your configuration file is up to date when you log in.
-@footnote{Make sure to run @command{anubisusr} in background, so
+command.  This command is built if @command{anubis} is configured
+with TLS support.
+
+We suggest invoking @command{anubisusr} from your @file{~/.profile},
+which will make sure that your configuration file is up to date when
+you log in.@footnote{Make sure to run @command{anubisusr} in background, so
 it does not slow down your normal login sequence.}.
 @FIXME{anubisusr should also allow to modify user
 password. This is the only database field, apart from @code{CONFIG}
