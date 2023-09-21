@@ -23,7 +23,7 @@ AC_INIT([GNU Anubis], [4.2.90], [bug-anubis@gnu.org])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE([1.16 gnits tar-ustar dist-bzip2 std-options silent-rules])
+AM_INIT_AUTOMAKE([1.16 gnits tar-ustar dist-bzip2 std-options silent-rules subdir-objects])
 AC_USE_SYSTEM_EXTENSIONS
 
 dnl Enable silent rules by default:

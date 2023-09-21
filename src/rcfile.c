@@ -529,7 +529,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       
     case KW_LOCAL_MTA:
       xfree (session.execpath);
-      argcv_free (-1, session.execargs);
+      argv_free (session.execargs);
       session.execpath = strdup (arg);
       session.execargs = list_to_argv (arglist);
       topt |= T_LOCAL_MTA;
@@ -865,7 +865,7 @@ rule_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
     case KW_EXTERNAL_BODY_PROCESSOR:
       argv = list_to_argv (arglist);
       message_external_proc (msg, argv);
-      argcv_free (-1, argv);
+      argv_free (argv);
       break;
       
     default:
@@ -934,7 +934,7 @@ smtp_rule_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
     case KW_EXTERNAL_BODY_PROCESSOR:
       argv = list_to_argv (arglist);
       message_external_proc (msg, argv);
-      argcv_free (-1, argv);
+      argv_free (argv);
       break;
       
     default:

@@ -206,28 +206,31 @@ find_capa_v (ANUBIS_SMTP_REPLY repl, const char *name, ANUBIS_LIST list)
   if (smtp_reply_has_capa (repl, name, &n))
     {
       const char *str = smtp_reply_line (repl, n);
-      int i, argc;
-      char **argv;
+      size_t i;
+      wordsplit_t ws;
       char *rv = NULL;
-      int rc;
-      
-      if ((rc = argcv_get (str, "", NULL, &argc, &argv)))
+
+      if (wordsplit (str, &ws,
+		     WRDSF_NOVAR | WRDSF_NOCMD | WRDSF_SQUEEZE_DELIMS))
 	{
-	  error (_("argcv_get failed: %s"), strerror (rc));
+	  error (_("wordsplit failed: %s"), wordsplit_strerror (&ws));
+	  wordsplit_free (&ws);
 	  return NULL;
 	}
 
       if (!list)
 	{
-	  if (argv[1])
-	    rv = xstrdup (argv[1]);
+	  if (ws.ws_wordv[1])
+	    rv = ws.ws_wordv[1];
 	}
       else
 	{
-	  for (i = 0; !rv && i < argc; i++)
-	    rv = list_locate (list, argv[i], name_cmp);
+	  for (i = 0; !rv && i < ws.ws_wordc; i++)
+	    rv = list_locate (list, ws.ws_wordv[i], name_cmp);
 	}
-      argcv_free (argc, argv);
+      if (rv)
+	rv = xstrdup (rv);
+      wordsplit_free (&ws);
       return rv;
     }
   return NULL;
@@ -395,10 +398,12 @@ parse_netrc (const char *filename)
   FILE *fp;
   char *buf = NULL;
   size_t n = 0;
-  int def_argc = 0;
+  size_t def_argc = 0;
   char **def_argv = NULL;
   char **p_argv = NULL;
   int line = 0;
+  wordsplit_t ws = { .ws_comment = "#" };
+  int wsflags = WRDSF_NOVAR | WRDSF_NOCMD | WRDSF_SQUEEZE_DELIMS | WRDSF_COMMENT;
 
   fp = fopen (filename, "r");
   if (!fp)
@@ -418,8 +423,6 @@ parse_netrc (const char *filename)
       int rc;
       char *p;
       size_t len;
-      int argc;
-      char **argv;
 
       line++;
       len = strlen (buf);
@@ -429,44 +432,46 @@ parse_netrc (const char *filename)
       if (*p == 0 || *p == '#')
 	continue;
 
-      if ((rc = argcv_get (buf, "", "#", &argc, &argv)))
+      rc = wordsplit (p, &ws, wsflags);
+      wsflags |= WRDSF_REUSE;
+      if (rc)
 	{
-	  error (_("argcv_get failed: %s"), strerror (rc));
-	  return;
+	  error (_("wordsplit failed: %s"), wordsplit_strerror (&ws));
+	  break;
 	}
       
-      if (strcmp (argv[0], "machine") == 0)
+      if (strcmp (ws.ws_wordv[0], "machine") == 0)
 	{
-	  if (hostcmp (argv[1], smtp_host) == 0)
+	  if (hostcmp (ws.ws_wordv[1], smtp_host) == 0)
 	    {
 	      VDETAIL (1, (_("Found matching line %d\n"), line));
 
 	      if (def_argc)
-		argcv_free (def_argc, def_argv);
-	      def_argc = argc;
-	      def_argv = argv;
-	      p_argv = argv + 2;
+		argv_free (def_argv);
+	      wordsplit_get_words (&ws, &def_argc, &def_argv);
+	      p_argv = def_argv + 2;
 	      break;
 	    }
 	}
-      else if (strcmp (argv[0], "default") == 0)
+      else if (strcmp (ws.ws_wordv[0], "default") == 0)
 	{
 	  VDETAIL (1, (_("Found default line %d\n"), line));
 
 	  if (def_argc)
-	    argcv_free (def_argc, def_argv);
-	  def_argc = argc;
-	  def_argv = argv;
-	  p_argv = argv + 1;
+	    argv_free (def_argv);
+	  wordsplit_get_words (&ws, &def_argc, &def_argv);
+	  p_argv = def_argv + 1;
 	}
       else
 	{
 	  VDETAIL (1, (_("Ignoring unrecognized line %d\n"), line));
-	  argcv_free (argc, argv);
 	}
     }
   fclose (fp);
   free (buf);
+
+  if (wsflags & WRDSF_REUSE)
+    wordsplit_free (&ws);
 
   if (!p_argv)
     VDETAIL (1, (_("No matching line found\n")));
@@ -488,7 +493,7 @@ parse_netrc (const char *filename)
 	    assign_string (&auth_args.password, p_argv[1]);
 	  p_argv += 2;
 	}
-      argcv_free (def_argc, def_argv);
+      argv_free (def_argv);
     }
 }
 

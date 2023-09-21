@@ -103,8 +103,7 @@ make_local_connection_fd (char *exec_path, char **exec_args)
   if (VERBOSE > options.termlevel) /* Extra check to avoid unnecessary
 				      memory allocation */
     {
-        char *args;
-	argcv_string (-1, exec_args, &args);
+        char *args = argv_string (exec_args);
 	info (VERBOSE, _("Executing %s..."), args);
 	free (args);
     }
@@ -163,16 +162,18 @@ make_local_connection (char *exec_path, char **exec_args)
 char *
 external_program (int *rs, char *path, char *src, char *dst, int dstsize)
 {
-  int rc;
   char *ret;
-  int argc;
-  char **argv = 0;
+  wordsplit_t ws;
 
-  if ((rc = argcv_get (path, "", "#", &argc, &argv)))
-    anubis_error (EX_SOFTWARE, rc, _("argcv_get failed"));
+  if (wordsplit (path, &ws,
+		 WRDSF_NOVAR | WRDSF_NOCMD | WRDSF_SQUEEZE_DELIMS))
+    {
+      anubis_error (EX_SOFTWARE, 0, _("wordsplit failed: %s"),
+		    wordsplit_strerror (&ws));
+    }
   
-  ret = exec_argv (rs, argv[0], argv, src, dst, dstsize);
-  argcv_free (argc, argv);
+  ret = exec_argv (rs, ws.ws_wordv[0], ws.ws_wordv, src, dst, dstsize);
+  wordsplit_free (&ws);
   return ret;
 }
 

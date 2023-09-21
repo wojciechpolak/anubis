@@ -51,7 +51,7 @@ free_mem (void)
   xfree (options.ulogfile);
   xfree (options.tracefile);
   xfree (session.execpath);
-  argcv_free (-1, session.execargs);
+  argv_free (session.execargs);
 }
 
 void

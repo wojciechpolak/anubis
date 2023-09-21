@@ -1663,7 +1663,7 @@ expr_eval (struct eval_env *env, RC_EXPR *expr)
 
   if (env->refstr && anubis_regex_refcnt (expr->re))
     {
-      argcv_free (-1, env->refstr);
+      argv_free (env->refstr);
       env->refcnt = 0;
       env->refstr = NULL;
     }
@@ -1814,7 +1814,7 @@ eval_section (int method, RC_SECTION *sec, struct rc_secdef *secdef,
     stmt_list_eval (&env, sec->stmt);
   
   if (env.refstr)
-    argcv_free (-1, env.refstr);
+    argv_free (env.refstr);
 }	
 
 void

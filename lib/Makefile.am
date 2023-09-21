@@ -21,5 +21,10 @@
 include gnulib.mk
 EXTRA_DIST += argcv.c argcv.h lbuf.c lbuf.h keyword.c keyword.h
 
-libanubis_a_SOURCES += argcv.c argcv.h lbuf.c lbuf.h keyword.c keyword.h
+libanubis_a_SOURCES += \
+ argv.c\
+ lbuf.c lbuf.h\
+ keyword.c keyword.h \
+ wordsplit/wordsplit.c wordsplit/wordsplit.h
 
+AM_CPPFLAGS += -I$(srcdir)/wordsplit

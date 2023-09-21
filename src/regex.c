@@ -198,7 +198,7 @@ anubis_regex_replace (RC_REGEX *re, char *line, char *repl)
 	{
 	  alloc = 1;
 	  p = substitute (repl, refv);
-	  argcv_free (-1, refv);
+	  argv_free (refv);
 	}
 
       plen = strlen (p);

@@ -196,7 +196,7 @@ message_remove_headers (MESSAGE msg, RC_REGEX *regex)
 	  assoc_free (asc);
 	}
       if (rc)
-	argcv_free (-1, rv);
+	argv_free (rv);
     }
   iterator_destroy (&itr);
 }
@@ -237,7 +237,7 @@ message_modify_headers (MESSAGE msg, RC_REGEX *regex, char *key2,
 	    }
 	}
       if (rc)
-	argcv_free (-1, rv);
+	argv_free (rv);
     }
   iterator_destroy (&itr);
 }
@@ -267,7 +267,7 @@ message_modify_command (MESSAGE msg, RC_REGEX *regex, char *key,
 	asc->value = expand_ampersand (value, asc->value);
     }
   if (rc)
-    argcv_free (-1, rv);
+    argv_free (rv);
 }
 
 

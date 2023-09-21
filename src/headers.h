@@ -134,11 +134,10 @@
 #endif /* WITH_GUILE */
 
 #include "xalloc.h"
-#include <argcv.h>
 #include <keyword.h>
 #include "list.h"
 #include "smtprepl.h"
-
+#include <wordsplit/wordsplit.h>
 #include <sysexits.h>
 
 #ifndef INADDR_NONE
@@ -648,5 +647,8 @@ int anubis_md5_file (int fd, unsigned char **out_digest, char const **err);
 
 /* mda.c */
 void mda (void);
+
+void argv_free (char **argv);
+char *argv_string (char **argv);
 
 /* EOF */
