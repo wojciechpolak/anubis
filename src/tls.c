@@ -341,14 +341,12 @@ verify_certificate (gnutls_session_t session)
 static int
 cipher_info (gnutls_session_t session)
 {
-  const char *tmp;
   gnutls_credentials_type_t cred;
   gnutls_kx_algorithm_t kx;
   int bits;
 
   kx = gnutls_kx_get (session);
-  tmp = gnutls_kx_get_name (kx);
-  fprintf (stderr, "- Key Exchange: %s\n", tmp);
+  fprintf (stderr, "- Key Exchange: %s\n", gnutls_kx_get_name (kx));
 
   cred = gnutls_auth_get_type (session);
   switch (cred)
@@ -376,21 +374,14 @@ cipher_info (gnutls_session_t session)
       break;
     }
 
-  tmp = gnutls_protocol_get_name (gnutls_protocol_get_version (session));
-  fprintf (stderr, _("- Protocol: %s\n"), tmp);
-
-  tmp =
-    gnutls_certificate_type_get_name (gnutls_certificate_type_get (session));
-  fprintf (stderr, _("- Certificate Type: %s\n"), tmp);
-
-  tmp = gnutls_compression_get_name (gnutls_compression_get (session));
-  fprintf (stderr, _("- Compression: %s\n"), tmp);
-
-  tmp = gnutls_cipher_get_name (gnutls_cipher_get (session));
-  fprintf (stderr, _("- Cipher: %s\n"), tmp);
-
-  tmp = gnutls_mac_get_name (gnutls_mac_get (session));
-  fprintf (stderr, _("- MAC: %s\n"), tmp);
+  fprintf (stderr, _("- Protocol: %s\n"),
+	   gnutls_protocol_get_name (gnutls_protocol_get_version (session)));
+  fprintf (stderr, _("- Certificate Type: %s\n"),
+	   gnutls_certificate_type_get_name (gnutls_certificate_type_get (session)));
+  fprintf (stderr, _("- Cipher: %s\n"),
+	   gnutls_cipher_get_name (gnutls_cipher_get (session)));
+  fprintf (stderr, _("- MAC: %s\n"),
+	   gnutls_mac_get_name (gnutls_mac_get (session)));
   return 0;
 }
 
