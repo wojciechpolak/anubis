@@ -24,7 +24,7 @@
 #ifdef WITH_PGSQL
 
 #include "sql.h"
-#include <libpq-fe.h>
+#include <postgresql/libpq-fe.h>
 
 /* PostgreSQL URL:
 
