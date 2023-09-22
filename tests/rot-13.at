@@ -19,6 +19,7 @@ AT_ANUBIS_CONFIG([anubis.rc],
 [BEGIN CONTROL
 logfile $PWD/etc/anubis.log
 local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
+use-pam no
 END
 
 BEGIN GUILE

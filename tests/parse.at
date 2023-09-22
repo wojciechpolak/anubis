@@ -19,6 +19,7 @@ AT_ANUBIS_CONFIG([anubis.rc],
 [[BEGIN CONTROL
 logfile "anubis.log"
 remote-mta "localhost:25"
+use-pam no
 END
 
 BEGIN RULE
@@ -60,6 +61,7 @@ AT_DATA([expout],
 [[BEGIN SECTION CONTROL
   ASGN: logfile = anubis.log
   ASGN: remote-mta = localhost:25
+  ASGN: use-pam = no
 END SECTION CONTROL
 BEGIN SECTION RULE
   REMOVE HEADER :exact [Lines]

@@ -1,4 +1,4 @@
-GNU Anubis NEWS -- history of user-visible changes. 2023-09-21
+GNU Anubis NEWS -- history of user-visible changes. 2023-09-22
 Copyright (C) 2001-2023 The Anubis Team.
 
 See the end of file for copying conditions.
@@ -8,11 +8,17 @@ Please send your bug reports to <bug-anubis@gnu.org>.
 
 ** Fix compilation with GDBM 1.18.1
 
-* Support for Guile version 2.2.0 and later
+** Support for Guile version 2.2.0 and later
 
 Support for prior versions has been withdrawn.
 
-* anubisusr requires GnuTLS
+** anubisusr requires GnuTLS
+
+** New configuration statement: use-pam
+
+Used in CONTROL section, this boolean statement enables or disables
+the use of the Pluggable Authentication Module interface for
+accounting and session management.
 
 * Version 4.2, 2014-05-23
 

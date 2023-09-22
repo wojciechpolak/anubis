@@ -1392,6 +1392,14 @@ Local domain name is used as @acronym{SASL} realm, unless overridden
 by @samp{sasl-realm} statement (@pxref{AUTH Section, sasl-realm}).
 @end deffn
 
+@deffn Option use-pam @var{bool}
+Enable the Pluggable Authentication Module interface.  If set to
+@code{yes}, @command{anubis} will uses PAM for accounting and session
+management (service name @samp{anubis}).
+
+The default is @code{yes} if PAM support is compiled in.
+@end deffn
+
 @node Output and Debugging Settings
 @subsection Output Settings
 

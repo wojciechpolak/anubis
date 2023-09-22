@@ -20,6 +20,7 @@ AT_ANUBIS_CONFIG([anubis.rc],
 logfile $PWD/etc/anubis.log
 local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log
 read-entire-body yes
+use-pam no
 END
 ])
 AT_DATA([input],

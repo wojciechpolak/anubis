@@ -260,6 +260,7 @@ process_rcfile (int method)
 #define KW_LOG_FACILITY             35
 #define KW_LOG_TAG                  36
 #define KW_ESMTP_AUTH_DELAYED       37
+#define KW_USE_PAM                  38
 
 char **
 list_to_argv (ANUBIS_LIST  list)
@@ -642,6 +643,16 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       setbool (env, arg, topt, T_ESMTP_AUTH_DELAYED);
       break;
 #endif
+
+    case KW_USE_PAM:
+      setbool (env, arg, use_pam, 1);
+#if !defined(HAVE_PAM)
+      if (use_pam)
+	eval_error (0, env,
+		    _("statement ignored: anubis compiled without PAM support"));
+#endif
+      break;
+
     default:
       if (parse_esmtp_kv (key, arglist))
 	eval_error (2, env,
@@ -662,6 +673,7 @@ static struct rc_kwdef init_kw[] = {
   { "log-facility", KW_LOG_FACILITY },
   { "log-tag", KW_LOG_TAG },
   { "ALLOW-HANG",   KW_ALLOW_HANG },
+  { "use-pam", KW_USE_PAM },
   { NULL },
 };
 

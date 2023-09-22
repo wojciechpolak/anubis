@@ -33,6 +33,7 @@ AT_ANUBIS_CONFIG([anubis.rc],
 [BEGIN CONTROL
 logfile $PWD/etc/anubis.log
 local-mta $abs_builddir/mta -bs -d $PWD/etc/mta.log -c $PWD/cfg/cert.pem -k $PWD/cfg/privkey.pem
+use-pam no
 ssl-oneway yes
 END
 ])

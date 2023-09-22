@@ -83,6 +83,7 @@ extern char *anubis_domain;
 extern pam_handle_t *pamh;
 extern int pam_retval;
 #endif /* HAVE_PAM */
+extern int use_pam;
 
 extern ANUBIS_MODE anubis_mode;
 

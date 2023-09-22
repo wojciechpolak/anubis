@@ -42,6 +42,7 @@ termlevel debug
 logfile $PWD/etc/anubis.log
 loglevel all
 tracefile yes
+use-pam no
 END
 
 BEGIN AUTH
@@ -56,6 +57,7 @@ AT_DATA([one.rc],
 [[BEGIN CONTROL
 logfile "anubis.log"
 remote-mta "localhost:25"
+use-pam no
 END
 BEGIN RULE
 if command["mail from"] = ".*<?root@localhost>?"
@@ -100,6 +102,7 @@ AT_DATA([two.rc],
 [BEGIN CONTROL
 logfile "anubis.log"
 remote-mta "localhost:25"
+use-pam no
 END
 
 BEGIN RULE
