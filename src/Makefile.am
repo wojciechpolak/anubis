@@ -26,8 +26,14 @@ bin_PROGRAMS = @ANUBIS_BIN_ADM@
 EXTRA_PROGRAMS = $(adm_bin_programs) $(adm_sbin_programs)
 
 noinst_LIBRARIES = libanubisdb.a
-anubis_LDADD = ./libanubisdb.a $(top_builddir)/lib/libanubis.a\
- @LIBINTL@ $(GUILE_LIBS) @LIBGNUTLS_LIBS@ @GSASL_LIBS@ 
+anubis_LDADD = \
+ ./libanubisdb.a\
+ $(top_builddir)/lib/libanubis.a\
+ @LIBINTL@\
+ $(GUILE_LIBS)\
+ @LIBGNUTLS_LIBS@\
+ @GSASL_LIBS@\
+ $(LIBGCRYPT_LIBS)
 
 anubis_SOURCES = \
  authmode.c \
@@ -71,6 +77,10 @@ endif
 
 if GUILE_COND
   anubis_SOURCES += guile.c
+endif
+
+if GCRYPT_COND
+  anubis_SOURCES += idecrypt.c
 endif
 
 anubisadm_SOURCES = anubisadm.c anubisadm.h adm.c
@@ -120,6 +130,7 @@ AM_CPPFLAGS =\
  @ADD_INCLUDES@\
  @GUILE_INCLUDES@\
  @LIBGNUTLS_INCLUDES@\
+ $(LIBGCRYPT_CFLAGS)\
  -I$(top_srcdir)/lib
 
 SUFFIXES=.opt .c

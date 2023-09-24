@@ -171,7 +171,7 @@ open_rcfile (int method)
 			  strlen (DEFAULT_LOCAL_RCFILE) + 2);
 	sprintf (rcfile, "%s/%s", homedir, DEFAULT_LOCAL_RCFILE);
       }
-    
+
     if (check_filename (rcfile, &global_mtime) == 0)
       {
 	free (rcfile);
@@ -181,7 +181,7 @@ open_rcfile (int method)
     file_id_destroy ();
     info (VERBOSE, _("Reading system configuration file %s..."), rcfile);
     break;
-    
+
   case CF_CLIENT:
     if ((topt & (T_ALTRC | T_NORC)) == (T_ALTRC | T_NORC))
       {
@@ -193,7 +193,7 @@ open_rcfile (int method)
       }
     info (VERBOSE, _("Reading user configuration file %s..."), rcfile);
   }
-  
+
   if ((topt & T_RELAX_PERM_CHECK) == 0 && check_filemode (rcfile) == 0)
     {				/* Wrong permissions... */
       free (rcfile);
@@ -223,44 +223,48 @@ process_rcfile (int method)
 
 
 /* ************************** The CONTROL Section ************************* */
-#define KW_BIND                      0
-#define KW_TERMLEVEL                 1
-#define KW_LOGLEVEL                  2
-#define KW_LOGFILE                   3
-#define KW_TRACEFILE                 4
-#define KW_REMOTE_MTA                5
-#define KW_LOCAL_MTA                 6
-#define KW_RULE_PRIORITY             7
-#define KW_CONTROL_PRIORITY          8
-#define KW_ESMTP_AUTH                9
-#define KW_DROP_UNKNOWN_USER        10
-#define KW_USER_NOTPRIVILEGED       11
-#define KW_SOCKS_PROXY              13
-#define KW_SOCKS_V4                 14
-#define KW_SOCKS_AUTH               15
-#define KW_READ_ENTIRE_BODY         16
-#define KW_LOCAL_DOMAIN             17
-#define KW_MODE                     18
-#define KW_ESMTP_ANONYMOUS_TOKEN    19 
-#define KW_ESMTP_AUTH_ID            20
-#define KW_ESMTP_AUTHZ_ID           21 
-#define KW_ESMTP_PASSWORD           22
-#define KW_ESMTP_SERVICE            23
-#define KW_ESMTP_HOSTNAME           24
-#define KW_ESMTP_GENERIC_SERVICE    25
-#define KW_ESMTP_PASSCODE           26
-#define KW_ESMTP_REALM              27
-#define KW_ESMTP_ALLOWED_MECH       28
-#define KW_ESMTP_REQUIRE_ENCRYPTION 29
-#define KW_INCOMING_MAIL_RULE       30
-#define KW_OUTGOING_MAIL_RULE       31
-#define KW_SMTP_COMMAND_RULE        32
-#define KW_HANG                     33
-#define KW_ALLOW_HANG               34
-#define KW_LOG_FACILITY             35
-#define KW_LOG_TAG                  36
-#define KW_ESMTP_AUTH_DELAYED       37
-#define KW_USE_PAM                  38
+enum
+  {
+    KW_BIND,
+    KW_TERMLEVEL,
+    KW_LOGLEVEL,
+    KW_LOGFILE,
+    KW_TRACEFILE,
+    KW_REMOTE_MTA,
+    KW_LOCAL_MTA,
+    KW_RULE_PRIORITY,
+    KW_CONTROL_PRIORITY,
+    KW_ESMTP_AUTH,
+    KW_DROP_UNKNOWN_USER,
+    KW_USER_NOTPRIVILEGED,
+    KW_SOCKS_PROXY,
+    KW_SOCKS_V4,
+    KW_SOCKS_AUTH,
+    KW_READ_ENTIRE_BODY,
+    KW_LOCAL_DOMAIN,
+    KW_MODE,
+    KW_ESMTP_ANONYMOUS_TOKEN,
+    KW_ESMTP_AUTH_ID,
+    KW_ESMTP_AUTHZ_ID,
+    KW_ESMTP_PASSWORD,
+    KW_ESMTP_SERVICE,
+    KW_ESMTP_HOSTNAME,
+    KW_ESMTP_GENERIC_SERVICE,
+    KW_ESMTP_PASSCODE,
+    KW_ESMTP_REALM,
+    KW_ESMTP_ALLOWED_MECH,
+    KW_ESMTP_REQUIRE_ENCRYPTION,
+    KW_INCOMING_MAIL_RULE,
+    KW_OUTGOING_MAIL_RULE,
+    KW_SMTP_COMMAND_RULE,
+    KW_HANG,
+    KW_ALLOW_HANG,
+    KW_LOG_FACILITY,
+    KW_LOG_TAG,
+    KW_ESMTP_AUTH_DELAYED,
+    KW_USE_PAM,
+    KW_IDENTD_KEYFILE,
+  };
 
 char **
 list_to_argv (ANUBIS_LIST  list)
@@ -289,7 +293,7 @@ parse_log_facility (const char *arg)
   unsigned long n;
   char *endp;
   struct anubis_keyword kw[] = {
-    { "USER",    LOG_USER },   
+    { "USER",    LOG_USER },
     { "DAEMON",  LOG_DAEMON },
     { "AUTH",    LOG_AUTH },
     { "AUTHPRIV",LOG_AUTHPRIV },
@@ -306,7 +310,7 @@ parse_log_facility (const char *arg)
     { NULL }
   };
   struct anubis_keyword *p;
-  
+
   if (strlen (arg) > 4 && strncasecmp (arg, "LOG_", 4) == 0)
     arg += 4;
   p = anubis_keyword_lookup_ci (kw, arg);
@@ -319,7 +323,7 @@ parse_log_facility (const char *arg)
     anubis_warning (0,
 		    _("%s: invalid syslog facility"), arg);
 }
-  
+
 /* When HANG=NUMBER is set in CONTROL section, `_anubis_hang' is set and
    Anubis will sleep for one second intervals, decrementing `_anubis_hang'
    until it's zero.  Thus you can force the program to continue by attaching
@@ -327,7 +331,7 @@ parse_log_facility (const char *arg)
 static volatile unsigned long _anubis_hang;
 
 /* List of users who are allowed to use HANG in their profiles */
-ANUBIS_LIST allow_hang_users; 
+ANUBIS_LIST allow_hang_users;
 
 static int
 parse_esmtp_kv (int key, ANUBIS_LIST arglist)
@@ -351,64 +355,64 @@ parse_esmtp_kv (int key, ANUBIS_LIST arglist)
 	  topt &= ~T_ESMTP_AUTH;
       }
       break;
-      
+
     case KW_ESMTP_ANONYMOUS_TOKEN:
       anon_token = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_AUTH_ID:
       authentication_id = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_AUTHZ_ID:
       authorization_id = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_PASSWORD:
       auth_password = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_SERVICE:
       auth_service = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_HOSTNAME:
       auth_hostname = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_GENERIC_SERVICE:
       generic_service_name = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_PASSCODE:
       auth_passcode = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_REALM:
       auth_realm = strdup (arg);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_ALLOWED_MECH:
       anubis_set_client_mech_list (arglist);
       topt |= T_ESMTP_AUTH;
       break;
-      
+
     case KW_ESMTP_REQUIRE_ENCRYPTION:
       anubis_set_encryption_mech_list (arglist);
       break;
 
     default:
       return 1;
-#endif 
+#endif
     }
   return 0;
 }
@@ -418,7 +422,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
 {
   char *arg = list_item (arglist, 0);
   int method = eval_env_method (env);
-  
+
   switch (key)
     {
     case KW_BIND:
@@ -426,7 +430,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       if (session.anubis && strlen (session.anubis) != 0)
 	topt |= T_NAMES;
       break;
-      
+
     case KW_RULE_PRIORITY:
       if (strcasecmp (arg, "user") == 0)
 	anubis_section_set_prio ("RULE", prio_user);
@@ -439,7 +443,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       else
 	eval_error (0, env, _("invalid rule priority"));
       break;
-      
+
     case KW_CONTROL_PRIORITY:
       if (strcasecmp (arg, "user") == 0)
 	anubis_section_set_prio ("CONTROL", prio_user);
@@ -448,7 +452,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       else
 	eval_error (0, env, _("invalid control priority"));
       break;
-      
+
     case KW_TERMLEVEL:
       if (strcasecmp ("silent", arg) == 0)
 	options.termlevel = SILENT;
@@ -461,12 +465,12 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       else
 	eval_error (0, env, _("invalid termlevel"));
       break;
-      
+
     case KW_USER_NOTPRIVILEGED:
       assign_string (&session.notprivileged, arg);
       topt |= T_USER_NOTPRIVIL;
       break;
-      
+
     case KW_LOGFILE:
       if (method == CF_CLIENT)
 	{
@@ -483,7 +487,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
 	  options.ulogfile = xstrdup (arg);
 	}
       break;
-      
+
     case KW_LOGLEVEL:
       if (strcasecmp ("none", arg) == 0)
 	options.uloglevel = NONE;
@@ -494,7 +498,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       else
 	eval_error (0, env, _("invalid loglevel"));
       break;
-      
+
     case KW_TRACEFILE:
       if (method & (CF_SUPERVISOR | CF_INIT))
 	setbool (env, arg, topt, T_TRACEFILE_SYS);
@@ -523,11 +527,11 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
 	    }
 	}
       break;
-      
+
     case KW_REMOTE_MTA:
       parse_mtaport (arg, &session.mta, &session.mta_port);
       break;
-      
+
     case KW_LOCAL_MTA:
       xfree (session.execpath);
       argv_free (session.execargs);
@@ -535,7 +539,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       session.execargs = list_to_argv (arglist);
       topt |= T_LOCAL_MTA;
       break;
-      
+
     case KW_LOCAL_DOMAIN:
       anubis_domain = strdup (arg);
       break;
@@ -545,11 +549,11 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       parse_mtaport (arg, &session.socks, &session.socks_port);
       if_empty_set (session.socks, topt, T_SOCKS);
       break;
-      
+
     case KW_SOCKS_V4:
       setbool (env, arg, topt, T_SOCKS_V4);
       break;
-      
+
     case KW_SOCKS_AUTH:
       {
 	char *p = 0;
@@ -568,11 +572,11 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
     case KW_READ_ENTIRE_BODY:
       setbool (env, arg, topt, T_ENTIRE_BODY);
       break;
-      
+
     case KW_DROP_UNKNOWN_USER:
       setbool (env, arg, topt, T_DROP_UNKNOWN_USER);
       break;
-      
+
     case KW_MODE:
       if (anubis_mode != anubis_mda) /* Special case. See comment to
 					KW_LOCAL_MAILER directive, though */
@@ -583,11 +587,11 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
 	    eval_error (0, env, _("invalid mode: %s"), arg);
 	}
       break;
-      
+
     case KW_INCOMING_MAIL_RULE:
       incoming_mail_rule = strdup (arg);
       break;
-      
+
     case KW_OUTGOING_MAIL_RULE:
       outgoing_mail_rule = strdup (arg);
       break;
@@ -595,31 +599,31 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
     case KW_SMTP_COMMAND_RULE:
       smtp_command_rule = strdup (arg);
       break;
-	
+
     case KW_LOG_FACILITY:
       parse_log_facility (arg);
       break;
-      
+
     case KW_LOG_TAG:
       log_tag = strdup (arg);
       break;
-      
+
     case KW_ALLOW_HANG:
       {
 	char *p;
 	ITERATOR itr = iterator_create (arglist);
-	
+
 	allow_hang_users = list_create ();
 	for (p = iterator_first (itr); p; p = iterator_next (itr))
 	  list_append (allow_hang_users, strdup (p));
       }
       break;
-      
+
     case KW_HANG:
       if (list_locate (allow_hang_users, session.clientname, anubis_name_cmp))
 	{
 	  int keep_termlevel = options.termlevel;
-	  
+
 	  _anubis_hang = atoi (arg ? arg : "3600");
 	  options.termlevel = DEBUG;
 	  eval_warning (env,
@@ -628,7 +632,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
 				  _anubis_hang),
 			_anubis_hang);
 	  options.termlevel = keep_termlevel;
-	  
+
 	  while (_anubis_hang-- > 0)
 	    sleep (1);
 	}
@@ -653,6 +657,14 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
 #endif
       break;
 
+    case KW_IDENTD_KEYFILE:
+      identd_keyfile_name = strdup (arg);
+#if !defined(USE_GCRYPT)
+      eval_error (0, env,
+		  _("statement ignored: anubis compiled without libgcrypt"));
+#endif
+      break;
+      
     default:
       if (parse_esmtp_kv (key, arglist))
 	eval_error (2, env,
@@ -674,6 +686,7 @@ static struct rc_kwdef init_kw[] = {
   { "log-tag", KW_LOG_TAG },
   { "ALLOW-HANG",   KW_ALLOW_HANG },
   { "use-pam", KW_USE_PAM },
+  { "identd-keyfile", KW_IDENTD_KEYFILE },
   { NULL },
 };
 
@@ -771,23 +784,23 @@ tls_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
     case KW_SSL:
       setbool (env, arg, topt, T_SSL);
       break;
-      
+
     case KW_SSL_ONEWAY:
       setbool (env, arg, topt, T_SSL_ONEWAY);
       break;
-      
+
     case KW_SSL_CERT:
       xfree (secure.cert);
       secure.cert = xstrdup (arg);
       break;
-      
+
     case KW_SSL_KEY:
       xfree (secure.key);
       secure.key = xstrdup (arg);
       if (eval_env_method (env) == CF_CLIENT)
 	topt |= T_SSL_CKCLIENT;
       break;
-      
+
     case KW_SSL_CAFILE:
       xfree (secure.cafile);
       secure.cafile = xstrdup (arg);
@@ -797,7 +810,7 @@ tls_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       xfree (secure.prio);
       secure.prio = xstrdup (arg);
       break;
-      
+
     default:
       eval_error (2, env,
 		  _("INTERNAL ERROR at %s:%d: unhandled key %d; "
@@ -860,26 +873,26 @@ rule_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       if (strcasecmp ("no", arg))
 	message_append_signature_file (msg);
       break;
-      
+
     case KW_BODY_APPEND:
       message_append_text_file (msg, arg, NULL);
       break;
-      
+
     case KW_BODY_CLEAR:
       message_replace_body (msg, xstrdup (""));
       break;
-      
+
     case KW_BODY_CLEAR_APPEND:
       message_replace_body (msg, xstrdup (""));
       message_append_text_file (msg, arg, NULL);
       break;
-      
+
     case KW_EXTERNAL_BODY_PROCESSOR:
       argv = list_to_argv (arglist);
       message_external_proc (msg, argv);
       argv_free (argv);
       break;
-      
+
     default:
       eval_error (2, env,
 		  _("INTERNAL ERROR at %s:%d: unhandled key %d; "
@@ -929,26 +942,26 @@ smtp_rule_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       if (strcasecmp ("no", arg))
 	message_append_signature_file (msg);
       break;
-      
+
     case KW_BODY_APPEND:
       message_append_text_file (msg, arg, NULL);
       break;
-      
+
     case KW_BODY_CLEAR:
       message_replace_body (msg, xstrdup (""));
       break;
-      
+
     case KW_BODY_CLEAR_APPEND:
       message_replace_body (msg, xstrdup (""));
       message_append_text_file (msg, arg, NULL);
       break;
-      
+
     case KW_EXTERNAL_BODY_PROCESSOR:
       argv = list_to_argv (arglist);
       message_external_proc (msg, argv);
       argv_free (argv);
       break;
-      
+
     default:
       if (parse_esmtp_kv (key, arglist))
 	eval_error (2, env,

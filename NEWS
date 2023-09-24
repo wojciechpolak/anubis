@@ -1,4 +1,4 @@
-GNU Anubis NEWS -- history of user-visible changes. 2023-09-22
+GNU Anubis NEWS -- history of user-visible changes. 2023-09-24
 Copyright (C) 2001-2023 The Anubis Team.
 
 See the end of file for copying conditions.
@@ -19,6 +19,13 @@ Support for prior versions has been withdrawn.
 Used in CONTROL section, this boolean statement enables or disables
 the use of the Pluggable Authentication Module interface for
 accounting and session management.
+
+** New configuration statement: identd-keyfile
+
+Sets the name of the file with shared keys used for decryting replies
+from the auth service.  It is used in traditional mode if anubis
+receives an encrypted response from the client's identd server
+(e.g. if they are running pidentd with encryption).
 
 * Version 4.2, 2014-05-23
 

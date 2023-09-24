@@ -25,66 +25,30 @@
  IDENT protocol support
 ************************/
 
-#define USERNAME_C "USERID :"
-
-/* If the reply matches sscanf expression
-   
-      "%*[^:]: USERID :%*[^:]:%s"
-
-   and the length of "%s" part does not exceed size-1 bytes,
-   copies this part to USERNAME and returns 0. Otherwise,
-   returns 1 */
+char *identd_keyfile_name;
 
 static int
-ident_extract_username (char *reply, char **pusername)
+ident_extract_username (char const *reply, char **pusername)
 {
-  char *p;
-
-  p = strchr (reply, ':');
-  if (!p)
-    return 1;
-  if (p[1] != ' ' || strncmp (p + 2, USERNAME_C, sizeof (USERNAME_C) - 1))
-    return 1;
-  p += 2 + sizeof (USERNAME_C) - 1;
-  p = strchr (p, ':');
-  if (!p)
-    return 1;
-  do
-    p++;
-  while (*p == ' ');
-  assign_string (pusername, p);
-  return 0;
-}
-
-/* If the reply matches sscanf expression
-
-      "%*[^ ] %*[^ ] %*[^ ] %*[^ ] %*[^ ] %s"
-
-   and the length of "%s" part does not exceed size-1 bytes,
-   copies this part to USERNAME and returns 0. Otherwise,
-   returns 1 */
-
-static int
-crypt_extract_username (char *reply, char **pusername)
-{
-  int i;
-  char *p = reply;
-#define skip_word(c) while (*c && (*c) != ' ') c++
-
-  /* Skip five words */
-  for (i = 0; i < 5; i++)
+  struct wordsplit ws = { .ws_delim = ":" };
+  int wsflags = WRDSF_NOVAR | WRDSF_NOCMD | WRDSF_DELIM | WRDSF_WS;
+  int result = 1;
+  
+  if (wordsplit (reply, &ws, wsflags))
     {
-      skip_word (p);
-      if (!*p++)
-	return 1;
+      anubis_error (0, 0, _("wordsplit failed: %s"), wordsplit_strerror (&ws));
     }
-
-  assign_string (pusername, p);
-  return 0;
+  else if (ws.ws_wordc == 4 && strcmp (ws.ws_wordv[1], "USERID") == 0)
+    {
+      *pusername = xstrdup (ws.ws_wordv[3]);
+      result = 0;
+    }
+  wordsplit_free (&ws);
+  return result;
 }
 
 int
-auth_ident (struct sockaddr_in *addr, char **user)
+auth_ident (struct sockaddr_in *addr, char **ret_user)
 {
   struct servent *sp;
   struct sockaddr_in ident;
@@ -95,7 +59,9 @@ auth_ident (struct sockaddr_in *addr, char **user)
   int rc;
   NET_STREAM str;
   size_t nbytes;
-
+  char *user;
+  int ulen;
+  
   if ((sd = socket (AF_INET, SOCK_STREAM, 0)) < 0)
     {
       anubis_error (0, errno, _("IDENT: socket() failed"));
@@ -141,7 +107,7 @@ auth_ident (struct sockaddr_in *addr, char **user)
   net_close_stream (&str);
 
   remcrlf (buf);
-  if (ident_extract_username (buf, user))
+  if (ident_extract_username (buf, &user))
     {
       info (VERBOSE, _("IDENT: incorrect data."));
       free (buf);
@@ -152,37 +118,27 @@ auth_ident (struct sockaddr_in *addr, char **user)
   /******************************
    IDENTD DES decryption support
   *******************************/
-
-  if (strstr (*user, "[") && strstr (*user, "]"))
+  ulen = strlen (user);
+  if (ulen > 2 && user[0] == '[' && user[ulen-1] == ']')
     {
-      int rs = 0;
-      info (VERBOSE, _("IDENT: data probably encrypted with DES..."));
-      external_program (&rs, IDECRYPT_PATH, *user, buf, LINEBUFFER);
-      if (rs == -1)
-	return 0;
-
-      remcrlf (buf);
-      if (crypt_extract_username (buf, user))
+      char *s;
+      
+      s = idecrypt_username (user + 1, ulen - 2);
+      free (user);
+      if (s != NULL)
 	{
-	  info (VERBOSE, _("IDENT: incorrect data (DES deciphered)."));
-	  return 0;
+	  user = s;
+	  info (VERBOSE, _("IDENT: data encrypted with DES"));
 	}
       else
-	{			/* UID deciphered */
-	  if (ntohl (ident.sin_addr.s_addr) == INADDR_LOOPBACK)
-	    {
-	      struct passwd *pwd;
-	      int uid = atoi (*user);
-	      pwd = getpwuid (uid);
-	      if (pwd != 0)
-		assign_string (user, pwd->pw_name);
-	      else
-		return 0;
-	    }
+	{
+	  info (VERBOSE, _("IDENT: incorrect data (DES deciphered)."));
+	  *ret_user = NULL;
+          return 0;
 	}
     }
-
-  info (VERBOSE, _("IDENT: resolved remote user to %s."), *user);
+  *ret_user = user;
+  info (VERBOSE, _("IDENT: resolved remote user to %s."), user);
   return 1;			/* success */
 }
 

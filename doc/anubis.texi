@@ -96,6 +96,7 @@ Indices
 
 Auth mode.
 
+* Auth Service::
 * User Database::
 * Database URL::
 * Managing the Database::
@@ -349,9 +350,10 @@ This mode uses @acronym{SMTP} AUTH mechanism to authenticate incoming
 connections. @xref{Pixie-Dixie}, original description of this mode.
 @end table
 
-Both modes have their advantages and deficiencies, which you need
-to weigh carefully before choosing which one to use. They are
-discussed below:
+Proxy mode is special in that no authentication is performed when
+running it.  The remaining two modes require authentication.  Both
+have their advantages and deficiencies, which you need to weigh
+carefully before choosing which one to use. They are discussed below:
 
 @heading Transparent (@samp{traditional}) mode.
 
@@ -392,10 +394,42 @@ Anubis runs.
 @end enumerate
 
 @menu
+* Auth Service::
 * User Database::
 * Database URL::
 * Managing the Database::
 @end menu
+
+@node Auth Service
+@section Auth Service
+
+@cindex pidentd
+@cindex auth service, encryption
+@cindex identd, encryption
+@cindex encryption, identd
+@cindex encryption, auth service
+Anubis session in traditional mode begins by querying @code{auth}
+service on the client machine in order to obtain system name of the
+user that initiated the session.  Some @code{identd} servers are able
+to encrypt sensitive information in their replies.  @command{Anubus}
+supports encryption protocol introduced by @command{pidentd} server
+@footnote{See @uref{https://github.com/ptrrkssn/pidentd}.}.  If some of
+your clients implement encryption, you would need the @dfn{DES key}
+(or keys) they use for that purpose.  Each such key is a sequence of
+1024 bytes. Store them in a file and ensure its ownership and
+mode prevent dissemination of this information.  Any number of keys can
+be stored.
+
+Once done, inform @command{anubis} about location of this file by
+placing the following statement in the @code{CONTROL} section of your
+configuration file:
+
+@example
+identd-keyfile @var{filename}
+@end example
+
+@noindent
+(replace @var{filename} with the actual name of the file).
 
 @node User Database
 @section User Database
@@ -1350,6 +1384,13 @@ only the first part to the filter. The rest of the message is copied
 verbatim. To alter this behavior so that your external program
 sees the entire message body, set @code{read-entire-body yes}
 in your control  section.
+@end deffn
+
+@deffn Option identd-keyfile @var{filename}
+Sets the file name of the file that contains DES keys to use when
+decoding responses from the @code{auth} (@command{ident}) server.
+This file is used if @code{auth} server encrypts its responses.
+@xref{Auth Service}, for details.
 @end deffn
 
 @deffn Option incoming-mail-rule @var{string} 

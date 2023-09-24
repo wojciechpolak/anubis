@@ -651,4 +651,10 @@ void mda (void);
 void argv_free (char **argv);
 char *argv_string (char **argv);
 
+#ifdef USE_GCRYPT
+char *idecrypt_username (char const *text, size_t len);
+#else
+static inline char *idecrypt_username (char const *text, size_t len) { return NULL; }
+#endif
+
 /* EOF */

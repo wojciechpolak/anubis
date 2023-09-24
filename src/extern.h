@@ -113,4 +113,5 @@ extern char *anubis_sasl_service;
 extern char *anubis_sasl_realm;
 extern char *anubis_sasl_hostname;
 
+extern char *identd_keyfile_name;
 /* EOF */

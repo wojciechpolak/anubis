@@ -61,6 +61,9 @@ static char *config_opts[] = {
 #ifdef ENABLE_NLS
   "NLS",
 #endif				/* ENABLE_NLS */
+#ifdef USE_GCRYPT
+  "GCRYPT", 
+#endif                          /* USE_GCRYPT */
   NULL
 };
 

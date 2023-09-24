@@ -34,10 +34,6 @@ AC_PROG_CC
 gl_EARLY
 AC_PROG_YACC
 AC_PROG_LEX([noyywrap])
-AC_PATH_PROG(idecrypt_path,idecrypt,/usr/sbin/idecrypt,
-$PATH:/sbin:/usr/sbin:/usr/local/sbin)
-AC_DEFINE_UNQUOTED(IDECRYPT_PATH,"${idecrypt_path}",
-[Define if IDECRYPT_PATH is present.])
 
 # *********************************************************************
 # GPG v2 (for the testsuite)
@@ -103,6 +99,12 @@ AC_CHECK_FUNCS(daemon putenv)
 
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(nsl, gethostbyaddr)
+
+AM_PATH_LIBGCRYPT([1.7.0], [status_gcrypt=yes], [status_gcrypt=no])
+AM_CONDITIONAL([GCRYPT_COND], [test "$status_gcrypt" = yes])
+if test "$status_gcrypt" = yes; then
+  AC_DEFINE([USE_GCRYPT], [1], [Define if using libgcrypt])
+fi
 
 AC_SUBST(ADD_INCLUDES)
 case $build in
