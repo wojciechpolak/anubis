@@ -2,7 +2,7 @@
    mda.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2005-2020 The Anubis Team.
+   Copyright (C) 2005-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,9 +20,6 @@
 
 #include "headers.h"
 #include "extern.h"
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 char *from_address; /* Sender address */
 
@@ -59,7 +56,7 @@ expand_meta_variable (char *start, size_t size,
 /* Expand meta-notations in arguments. */
    
 static void
-expand_arg (struct obstack *stk, char *arg)
+expand_arg (struct stringbuf *sb, char *arg)
 {
   char *meta = 0;
   for (; *arg; arg++)
@@ -67,7 +64,7 @@ expand_arg (struct obstack *stk, char *arg)
       if (!meta)
 	{
 	  if (*arg != '%')
-	    obstack_1grow (stk, *arg);
+	    stringbuf_add_char (sb, *arg);
 	  else
 	    meta = arg;
 	}
@@ -79,8 +76,8 @@ expand_arg (struct obstack *stk, char *arg)
 	      size_t size;
 	      
 	      expand_meta_variable (meta, arg - meta, &repl, &size);
-	      obstack_grow (stk, repl, size);
-	      obstack_1grow (stk, *arg);
+	      stringbuf_add (sb, repl, size);
+	      stringbuf_add_char (sb, *arg);
 	      meta = NULL;
 	    }
 	}
@@ -92,10 +89,10 @@ expand_arg (struct obstack *stk, char *arg)
       size_t size;
 	      
       expand_meta_variable (meta, arg - meta, &repl, &size);
-      obstack_grow (stk, repl, size);
+      stringbuf_add (sb, repl, size);
     }
   
-  obstack_1grow (stk, 0);
+  stringbuf_add_char (sb, 0);
 }
 
 
@@ -378,24 +375,23 @@ deliver_local_child (const char *recipient, MESSAGE msg)
   int i;
   char **argv;
   char *p;
-  struct obstack stk;
+  struct stringbuf sb = STRINGBUF_INITIALIZER;
   int status;
   pid_t pid;
 
   /* Create argv vector.
      Argv will not be freed. It is no use, since we're going to
      exit anyway. */
-  obstack_init (&stk);
   for (i = 0; session.execargs[i]; i++)
-    expand_arg (&stk, session.execargs[i]);
-  obstack_1grow (&stk, 0);
+    expand_arg (&sb, session.execargs[i]);
       
   argv = xmalloc (sizeof *argv * (i + 1));
-  for (i = 0, p = obstack_finish (&stk); *p; p += strlen (p) + 1, i++)
+  for (i = 0, p = stringbuf_finish (&sb); *p; p += strlen (p) + 1, i++)
     argv[i] = p;
   argv[i] = NULL;
 	
   remote_server = make_local_connection (session.execpath, argv);
+  stringbuf_free (&sb);
   if (!remote_server)
     {
       service_unavailable (&remote_client);

@@ -2,7 +2,7 @@
 ## Makefile.am
 ##
 ## This file is part of GNU Anubis.
-## Copyright (C) 2001-2020 The Anubis Team.
+## Copyright (C) 2001-2023 The Anubis Team.
 ##
 ## GNU Anubis is free software; you can redistribute it and/or modify it
 ## under the terms of the GNU General Public License as published by the
@@ -19,7 +19,7 @@
 ##
 
 ACLOCAL_AMFLAGS = -I m4 -I am -I gint -I doc/imprimatur
-SUBDIRS = build lib gint src po doc scripts examples guile contrib \
+SUBDIRS = build gint src po doc scripts examples guile contrib \
 	  elisp tests 
 
 AM_DISTCHECK_CONFIGURE_FLAGS =\
@@ -31,27 +31,19 @@ AM_DISTCHECK_CONFIGURE_FLAGS =\
  --with-socks-proxy\
  --with-pcre
 
-.PHONY: make-ChangeLog
-make-ChangeLog:
-	if test -d .git; then                                           \
-	  perl $(top_srcdir)/build/gitlog-to-changelog --since=2008-12-16 | \
-            sed '/<unknown>$$/d' | fmt -s > $(distdir)/cl-t;            \
-	  echo >> $(distdir)/cl-t;                                      \
-	  cat ChangeLog-CVS-old >> $(distdir)/cl-t;                     \
-	  rm -f $(distdir)/ChangeLog;                                   \
-	  mv $(distdir)/cl-t $(distdir)/ChangeLog;                      \
-	fi
-
-dist-hook: make-ChangeLog
+gen_start_date = 2008-12-16
+prev_change_log = ChangeLog-CVS-old
 
 .PHONY: ChangeLog
 ChangeLog:
-	if test -d .git && test -f ChangeLog-CVS-old; then              \
-	  perl $(top_srcdir)/build/gitlog-to-changelog --since=2008-12-16 | \
-            sed '/<unknown>$$/d' | fmt -s > ChangeLog;                  \
-	  echo >> ChangeLog;                                            \
-	  cat ChangeLog-CVS-old >> ChangeLog;                           \
+	$(AM_V_GEN)if test -d .git; then                                    \
+          (git log --pretty='format:%ad  %cn  <%ae>%n%n%w(72,8,8)%s%n%n%b'  \
+                   --date=short                                             \
+                   --since=$(gen_start_date);                               \
+           echo "";                                                         \
+           cat $(prev_change_log);                                          \
+           echo "") > ChangeLog.tmp;                                        \
+          cmp ChangeLog ChangeLog.tmp > /dev/null 2>&1 ||                   \
+            mv ChangeLog.tmp ChangeLog;                                     \
+          rm -f ChangeLog.tmp;                                              \
         fi
-
-## EOF
-

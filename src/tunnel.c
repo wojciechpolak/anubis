@@ -2,7 +2,7 @@
    tunnel.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2001-2020 The Anubis Team.
+   Copyright (C) 2001-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,10 +20,6 @@
 
 #include "headers.h"
 #include "extern.h"
-
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 static int transfer_command (MESSAGE);
 static int process_command (MESSAGE, char *);
@@ -208,14 +204,13 @@ collect_body (MESSAGE msg)
   int nread;
   char *buf = NULL;
   size_t size = 0;
-  struct obstack stk;
+  struct stringbuf sb = STRINGBUF_INITIALIZER;
   int state = 0;
   int len;
   const char *boundary = message_get_boundary (msg);
   
   if (boundary)
     len = strlen (boundary);
-  obstack_init (&stk);
   while (state != ST_DONE
 	 && (nread = recvline (SERVER, remote_client, &buf, &size)))
     {
@@ -245,22 +240,20 @@ collect_body (MESSAGE msg)
 		state = ST_DONE;
 	      else
 		{
-		  obstack_grow (&stk, buf, strlen (buf));
-		  obstack_1grow (&stk, '\n');
+		  stringbuf_add_string (&sb, buf);
+		  stringbuf_add_char (&sb, '\n');
 		}
 	    }
 	}
       else
 	{
-	  obstack_grow (&stk, buf, strlen (buf));
-	  obstack_1grow (&stk, '\n');
+	  stringbuf_add_string (&sb, buf);
+	  stringbuf_add_char (&sb, '\n');
 	}
     }
   free (buf);
-  obstack_1grow (&stk, 0);
   /* FIXME: Use message_proc_body to avoid spurious reallocations */
-  message_replace_body (msg, xstrdup (obstack_finish (&stk)));
-  obstack_free (&stk, NULL);
+  message_replace_body (msg, stringbuf_finish (&sb));
 }
 
 void

@@ -20,9 +20,6 @@
 
 #include "headers.h"
 #include "extern.h"
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 #include "rcfile.h"
 
 static int xdatabase_active = 0;
@@ -41,27 +38,22 @@ xdatabase_capability (ANUBIS_SMTP_REPLY reply)
 }
 
 static FILE *
-make_temp_file (struct obstack *stk, char *rcname, char **name)
+make_temp_file (char *rcname, char **name)
 {
-  char nbuf[64];
+  struct stringbuf sb = STRINGBUF_INITIALIZER;
   struct timeval tv;
   char *p;
   FILE *fp;
   int save_umask;
 
-  obstack_grow (stk, rcname, strlen (rcname));
-  obstack_1grow (stk, '.');
-  p = get_localname ();
-  obstack_grow (stk, p, strlen (p));
-
   gettimeofday (&tv, NULL);
-  snprintf (nbuf, sizeof nbuf, ".%lu.%lu.", tv.tv_sec, tv.tv_usec);
-  obstack_grow (stk, nbuf, strlen (nbuf));
-  snprintf (nbuf, sizeof nbuf, "%lu", (unsigned long) getpid ());
-  obstack_grow (stk, nbuf, strlen (nbuf));
-  obstack_grow (stk, ".tmp", 5);
+  stringbuf_printf (&sb, "%s.%s.%lu.%lu.%lu.tmp",
+		    rcname,
+		    get_localname (),
+		    tv.tv_sec, tv.tv_usec,
+		    (unsigned long) getpid ());
 
-  p = *name = obstack_finish (stk);
+  p = *name = stringbuf_finish (&sb);
 
   save_umask = umask (077);
   fp = fopen (p, "w");
@@ -81,28 +73,23 @@ _xdb_error_printer (void *data,
 		    const char *pfx,
 		    const char *fmt, va_list ap)
 {
-  struct obstack *stk = data;
-  char buf[LINEBUFFER];
+  struct stringbuf *sb = data;
   int n;
 
-  obstack_grow (stk, ERROR_PREFIX, sizeof ERROR_PREFIX - 1);
+  stringbuf_add_string (sb, ERROR_PREFIX);
   /* FIXME: column? */
-  n = snprintf (buf, sizeof buf, "%lu", (unsigned long)loc->line);
-  obstack_grow (stk, buf, n);
+  stringbuf_printf (sb, "%lu", (unsigned long)loc->line);
   if (topt & T_LOCATION_COLUMN)
     {
-      n = snprintf (buf, sizeof buf, ".%lu", (unsigned long)loc->column);
-      obstack_grow (stk, buf, n);
+      stringbuf_printf (sb, ".%lu", (unsigned long)loc->column);
     }
-  obstack_grow (stk, ": ", 2);
+  stringbuf_add_string (sb, ": ");
   if (pfx)
     {
-      obstack_grow (stk, pfx, strlen (pfx));
-      obstack_grow (stk, ": ", 2);
+      stringbuf_printf (sb, "%s: ", pfx);
     }
-  n = vsnprintf (buf, sizeof buf, fmt, ap);
-  obstack_grow (stk, buf, n);
-  obstack_grow (stk, CRLF, 2);
+  stringbuf_vprintf (sb, fmt, ap);
+  stringbuf_add (sb, CRLF, 2);
 }
 
 static void
@@ -113,19 +100,16 @@ xupload (void)
   char *line = NULL;
   size_t size = 0;
   RC_SECTION *sec;
-  struct obstack stk;
   char *rcname;
-
-  obstack_init (&stk);
+  struct stringbuf sb = STRINGBUF_INITIALIZER;
 
   rcname = user_rcfile_name ();
-  tempfile = make_temp_file (&stk, rcname, &tempname);
+  tempfile = make_temp_file (rcname, &tempname);
   if (!tempfile)
     {
       swrite (SERVER, remote_client,
 	      "450 Failed to create temporary file\r\n");
       free (rcname);
-      obstack_free (&stk, NULL);
       return;
     }
 
@@ -145,12 +129,10 @@ xupload (void)
   fclose (tempfile);
 
   /* Parse it */
-  sec = rc_parse_ep (tempname, _xdb_error_printer, &stk);
+  sec = rc_parse_ep (tempname, _xdb_error_printer, &sb);
   if (!sec)
     {
-      char *errmsg;
-      obstack_1grow (&stk, 0);
-      errmsg = obstack_finish (&stk);
+      char *errmsg = stringbuf_finish (&sb);
       swrite (SERVER, remote_client, "450-Configuration update failed" CRLF);
       swrite (SERVER, remote_client, errmsg);
       swrite (SERVER, remote_client, "450 Please fix and submit again" CRLF);
@@ -175,7 +157,7 @@ xupload (void)
 	}
     }
   free (rcname);
-  obstack_free (&stk, NULL);
+  stringbuf_free (&sb);
 }
 
 static void

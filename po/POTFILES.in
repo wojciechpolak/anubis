@@ -30,12 +30,7 @@ src/regex.c
 src/tls.c
 src/transmode.c
 src/tunnel.c
-
-lib/obstack.c
-lib/error.c
-lib/xalloc-die.c
-
-lib/wordsplit/wordsplit.c
+src/wordsplit/wordsplit.c
 
 # EOF
 

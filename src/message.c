@@ -2,7 +2,7 @@
    message.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2003-2020 The Anubis Team.
+   Copyright (C) 2003-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,10 +20,6 @@
 
 #include "headers.h"
 #include "extern.h"
-
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 struct message_struct
 {
@@ -134,10 +130,9 @@ expand_ampersand (char *value, char *old_value)
     }
   else
     {
-      struct obstack stk;
+      struct stringbuf sb = STRINGBUF_INITIALIZER;
       int old_length = strlen (old_value);
 
-      obstack_init (&stk);
       for (; *value; value++)
 	{
 	  switch (*value)
@@ -145,19 +140,17 @@ expand_ampersand (char *value, char *old_value)
 	    case '\\':
 	      value++;
 	      if (*value != '&')
-		obstack_1grow (&stk, '\\');
-	      obstack_1grow (&stk, *value);
+		stringbuf_add_char (&sb, '\\');
+	      stringbuf_add_char (&sb, *value);
 	      break;
 	    case '&':
-	      obstack_grow (&stk, old_value, old_length);
+	      stringbuf_add (&sb, old_value, old_length);
 	      break;
 	    default:
-	      obstack_1grow (&stk, *value);
+	      stringbuf_add_char (&sb, *value);
 	    }
 	}
-      obstack_1grow (&stk, 0);
-      p = strdup (obstack_finish (&stk));
-      obstack_free (&stk, NULL);
+      p = stringbuf_finish (&sb);
     }
   return p;
 }
@@ -328,13 +321,11 @@ message_modify_body (MESSAGE msg, RC_REGEX *regex, char *value)
   else
     {
       char *start, *end;
-      int stack_level = 0;
-      struct obstack stack;
+      struct stringbuf sb = STRINGBUF_INITIALIZER;
 
       start = msg->body;
       while (start && *start)
 	{
-	  int len;
 	  char *newp;
 
 	  end = strchr (start, '\n');
@@ -345,41 +336,28 @@ message_modify_body (MESSAGE msg, RC_REGEX *regex, char *value)
 
 	  if (newp)
 	    {
-	      if (!stack_level)
+	      if (stringbuf_len (&sb) == 0)
 		{
-		  obstack_init (&stack);
-		  stack_level = start - msg->body;
-		  if (stack_level > 0)
-		    {
-		      obstack_grow (&stack, msg->body, stack_level);
-		    }
-		  stack_level++;
+		  stringbuf_add (&sb, msg->body, start - msg->body);
 		}
-	      len = strlen (newp);
-	      obstack_grow (&stack, newp, len);
-	      obstack_1grow (&stack, '\n');
+	      stringbuf_add_string (&sb, newp);
+	      stringbuf_add_char (&sb, '\n');
 	      xfree (newp);
-	      stack_level += len + 1;
 	    }
-	  else if (stack_level)
+	  else if (stringbuf_len (&sb) > 0)
 	    {
-	      len = strlen (start);
-	      obstack_grow (&stack, start, len);
-	      obstack_1grow (&stack, '\n');
-	      stack_level += len + 1;
+	      stringbuf_add_string (&sb, start);
+	      stringbuf_add_char (&sb, '\n');
 	    }
 	  if (end)
 	    *end++ = '\n';
 	  start = end;
 	}
 
-      if (stack_level)
+      if (stringbuf_len (&sb) > 0)
 	{
-	  char *p = obstack_finish (&stack);
-	  msg->body = xrealloc (msg->body, stack_level + 1);
-	  memcpy (msg->body, p, stack_level - 1);
-	  msg->body[stack_level - 1] = 0;
-	  obstack_free (&stack, NULL);
+	  free (msg->body);
+	  msg->body = stringbuf_finish (&sb);
 	}
     }
 }

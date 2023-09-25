@@ -417,7 +417,7 @@ parse_netrc (const char *filename)
   else
     VDETAIL (1, (_("Opening configuration file %s...\n"), filename));
 
-  while (getline (&buf, &n, fp) > 0 && n > 0)
+  while (xgetline (&buf, &n, fp) > 0 && n > 0)
     {
       int rc;
       char *p;
@@ -504,7 +504,7 @@ get_input (const char *prompt)
 
   printf ("%s", prompt);
   fflush (stdout);
-  getline (&buf, &n, stdin);
+  xgetline (&buf, &n, stdin);
 
   n = strlen (buf);
   if (n > 1 && buf[n - 1] == '\n')
@@ -521,10 +521,13 @@ callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
     {
     case GSASL_PASSWORD:
       if (auth_args.password == NULL)
-	auth_args.password = getpass (_("Password: "));
-
-      if (auth_args.password == NULL)
-	return GSASL_AUTHENTICATION_ERROR;
+	{
+	  if (anubis_getpass (_("Password: "), &auth_args.password))
+	    {
+	      error ("anubis_getpass: %s", strerror (errno));
+	      return GSASL_AUTHENTICATION_ERROR;
+	    }
+	}
       gsasl_property_set (sctx, prop, auth_args.password);
       break;
 
@@ -578,9 +581,13 @@ callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
 
     case GSASL_PASSCODE:
       if (auth_args.passcode == NULL)
-	auth_args.passcode = getpass (_("Passcode: "));
-      if (auth_args.passcode == NULL)
-	return GSASL_AUTHENTICATION_ERROR;
+	{
+	  if (anubis_getpass (_("Passcode: "), &auth_args.passcode))
+	    {
+	      error ("anubis_getpass: %s", strerror (errno));
+	      return GSASL_AUTHENTICATION_ERROR;
+	    }
+	}
       gsasl_property_set (sctx, prop, auth_args.passcode);
       break;
 
@@ -823,7 +830,7 @@ smtp_upload (char *rcname)
       return;
     }
 
-  while (getline (&buf, &n, fp) > 0 && n > 0)
+  while (xgetline (&buf, &n, fp) > 0 && n > 0)
     {
       size_t len = strlen (buf);
       if (len && buf[len - 1] == '\n')
@@ -961,7 +968,7 @@ read_netrc (void)
 }
 
 void
-xalloc_die ()
+xnomem (void)
 {
   error ("%s", _("Not enough memory"));
   exit (1);

@@ -133,12 +133,22 @@
 # include <libguile.h>
 #endif /* WITH_GUILE */
 
-#include "xalloc.h"
+#ifdef HAVE_SYSEXITS_H
+# include <sysexits.h>
+#else
+# define EX_OK            0
+# define EX_USAGE         64
+# define EX_UNAVAILABLE   69
+# define EX_SOFTWARE      70
+# define EX_TEMPFAIL      75
+# define EX_PROTOCOL      76
+# define EX_CONFIG        78
+#endif
+
 #include <keyword.h>
 #include "list.h"
 #include "smtprepl.h"
 #include <wordsplit/wordsplit.h>
-#include <sysexits.h>
 
 #ifndef INADDR_NONE
 # define INADDR_NONE (unsigned long)0xffffffff
@@ -656,5 +666,69 @@ char *idecrypt_username (char const *text, size_t len);
 #else
 static inline char *idecrypt_username (char const *text, size_t len) { return NULL; }
 #endif
+
+/* getpass.c */
+int anubis_getpass (char const *prompt, char **pass);
+
+/* mem.c */
+void xnomem (void);
+void *mem2nrealloc (void *p, size_t *pn, size_t s);
+void *xmalloc (size_t s);
+void *xcalloc (size_t nmemb, size_t size);
+static inline void *xzalloc (size_t size) { return xcalloc (1, size); }
+void *xrealloc (void *p, size_t s);
+void *x2nrealloc (void *p, size_t *pn, size_t s);
+static inline void *x2realloc (void *p, size_t *pn) {
+	return x2nrealloc (p, pn, 1);
+}
+char *xstrdup (char const *s);
+char *xstrndup (const char *s, size_t n);
+ssize_t xgetline (char **pbuf, size_t *psize, FILE *fp);
+
+struct stringbuf
+{
+  char *base;                     /* Buffer storage. */
+  size_t size;                    /* Size of buf. */
+  size_t len;                     /* Actually used length in buf. */
+  void (*nomem) (void);           /* Out of memory handler. */
+  int err;                        /* Error indicator */
+};
+
+#define STRINGBUF_INITIALIZER { NULL, 0, 0, xnomem, 0 }
+
+void stringbuf_init (struct stringbuf *sb, void (*nomem) (void));
+void stringbuf_reset (struct stringbuf *sb);
+char *stringbuf_finish (struct stringbuf *sb);
+void stringbuf_free (struct stringbuf *sb);
+int stringbuf_add (struct stringbuf *sb, char const *str, size_t len);
+int stringbuf_add_char (struct stringbuf *sb, int c);
+int stringbuf_add_string (struct stringbuf *sb, char const *str);
+int stringbuf_vprintf (struct stringbuf *sb, char const *fmt, va_list ap);
+int stringbuf_printf (struct stringbuf *sb, char const *fmt, ...)
+  ANUBIS_PRINTFLIKE(2,3);
+char *stringbuf_set (struct stringbuf *sb, int c, size_t n);
+int stringbuf_strftime (struct stringbuf *sb, char const *fmt,
+			const struct tm *tm);
+
+static inline int
+stringbuf_err (struct stringbuf *sb)
+{
+  return sb->err;
+}
+
+static inline char *stringbuf_value (struct stringbuf *sb)
+{
+  return sb->base;
+}
+
+static inline size_t stringbuf_len (struct stringbuf *sb)
+{
+  return sb->len;
+}
+
+static inline void xstringbuf_init (struct stringbuf *sb)
+{
+  stringbuf_init (sb, xnomem);
+}
 
 /* EOF */

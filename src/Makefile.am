@@ -25,10 +25,9 @@ sbin_PROGRAMS = anubis @ANUBIS_SBIN_ADM@
 bin_PROGRAMS = @ANUBIS_BIN_ADM@
 EXTRA_PROGRAMS = $(adm_bin_programs) $(adm_sbin_programs)
 
-noinst_LIBRARIES = libanubisdb.a
+noinst_LIBRARIES = libanubis.a
 anubis_LDADD = \
- ./libanubisdb.a\
- $(top_builddir)/lib/libanubis.a\
+ ./libanubis.a\
  @LIBINTL@\
  $(GUILE_LIBS)\
  @LIBGNUTLS_LIBS@\
@@ -84,15 +83,19 @@ if GCRYPT_COND
 endif
 
 anubisadm_SOURCES = anubisadm.c anubisadm.h adm.c
-anubisadm_LDADD = ./libanubisdb.a $(top_builddir)/lib/libanubis.a @LIBINTL@
+anubisadm_LDADD = ./libanubis.a @LIBINTL@
 anubisusr_SOURCES = anubisusr.c anubisusr.h usr.c
-anubisusr_LDADD = ./libanubisdb.a $(top_builddir)/lib/libanubis.a @LIBINTL@ @LIBGNUTLS_LIBS@ @GSASL_LIBS@ 
+anubisusr_LDADD = ./libanubis.a @LIBINTL@ @LIBGNUTLS_LIBS@ @GSASL_LIBS@ 
 
-libanubisdb_a_SOURCES = \
+libanubis_a_SOURCES = \
  anubisdb.c \
  dbtext.c \
+ getpass.c \
+ keyword.c \
+ keyword.h \
  list.c \
  list.h \
+ mem.c \
  mysql.c \
  pgsql.c \
  sql.h \
@@ -100,27 +103,29 @@ libanubisdb_a_SOURCES = \
  smtprepl.c \
  smtprepl.h \
  stream.c \
- url.c 
+ url.c \
+ wordsplit/wordsplit.c \
+ wordsplit/wordsplit.h
 
 if TLS_COND
-  libanubisdb_a_SOURCES += tls.c md5sum.c xdatabase.c
+  libanubis_a_SOURCES += tls.c md5sum.c xdatabase.c
   adm_bin_programs += anubisusr
 else
-  libanubisdb_a_SOURCES += notls.c
+  libanubis_a_SOURCES += notls.c
 endif
 
 if GSASL_COND
-  libanubisdb_a_SOURCES += gsasl.c
+  libanubis_a_SOURCES += gsasl.c
 endif
 
 if GDBM_COND
-  libanubisdb_a_SOURCES += gdbm.c
+  libanubis_a_SOURCES += gdbm.c
 endif
 
 
 AM_YFLAGS = -dtv
 AM_LFLAGS = -dvp
-EXTRA_DIST = getopt.m4 env.opt
+EXTRA_DIST = getopt.m4 env.opt gettext.h
 
 BUILT_SOURCES = env.c
 
@@ -131,14 +136,16 @@ AM_CPPFLAGS =\
  @GUILE_INCLUDES@\
  @LIBGNUTLS_INCLUDES@\
  $(LIBGCRYPT_CFLAGS)\
- -I$(top_srcdir)/lib
+ -I$(top_srcdir)\
+ -I$(srcdir)\
+ -I$(srcdir)/wordsplit
 
 SUFFIXES=.opt .c
 
 .opt.c:
 	m4 -s $(top_srcdir)/src/getopt.m4 $< | sed '1d' > $@
 
-FLOWCHART_FILES=$(anubis_SOURCES) $(libanubisdb_a_SOURCES)
+FLOWCHART_FILES=$(anubis_SOURCES) $(libanubis_a_SOURCES)
 
 flowchart: anubis.cflow
 

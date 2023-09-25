@@ -1,7 +1,7 @@
 dnl configure.ac -*- autoconf-*-
 dnl
 dnl This file is part of GNU Anubis.
-dnl Copyright (C) 2001-2020 The Anubis Team.
+dnl Copyright (C) 2001-2023 The Anubis Team.
 dnl
 dnl GNU Anubis is free software; you can redistribute it and/or modify it
 dnl under the terms of the GNU General Public License as published by the
@@ -31,9 +31,9 @@ AM_SILENT_RULES([yes])
 
 dnl Checks for programs.
 AC_PROG_CC
-gl_EARLY
 AC_PROG_YACC
 AC_PROG_LEX([noyywrap])
+AC_PROG_RANLIB
 
 # *********************************************************************
 # GPG v2 (for the testsuite)
@@ -74,7 +74,7 @@ AM_CONDITIONAL([COND_GPG2],[test -n "$GPG"])
 AC_TYPE_SIZE_T
 AC_TYPE_PID_T
 AC_CHECK_TYPE(u_char, unsigned char)
-AC_CHECK_HEADERS(arpa/inet.h sys/types.h sys/socket.h socket.h locale.h)
+AC_CHECK_HEADERS(arpa/inet.h sys/types.h sys/socket.h socket.h locale.h sysexits.h)
 
 AC_CHECK_TYPE([socklen_t], , 
 [AC_DEFINE_UNQUOTED([socklen_t], [int], [Type to use instead of socklen_t, if <sys/types.h> does not define])],
@@ -91,8 +91,6 @@ AC_CHECK_TYPE([socklen_t], ,
 ])
 
 dnl Checks for library functions.
-gl_INIT
-
 AC_CHECK_FUNCS(getrlimit setrlimit socketpair)
 AC_CHECK_FUNCS(setegid setregid setresgid seteuid setreuid)
 AC_CHECK_FUNCS(daemon putenv)
@@ -389,7 +387,6 @@ AC_CONFIG_FILES([Makefile
  examples/Makefile
  examples/pam/Makefile
  guile/Makefile
- lib/Makefile
  po/Makefile.in
  scripts/Makefile
  src/Makefile

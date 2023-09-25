@@ -2,7 +2,7 @@
    gsasl.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2003-2020 The Anubis Team.
+   Copyright (C) 2003-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,7 +20,6 @@
 
 #include "headers.h"
 #include "extern.h"
-#include "lbuf.h"
 
 
 /* Basic I/O Functions */
@@ -28,7 +27,7 @@
 struct anubis_gsasl_stream
 {
   Gsasl_session *sess_ctx; /* Context */
-  struct _line_buffer *lb;
+  struct stringbuf sb;
   NET_STREAM stream;
 };
 
@@ -72,16 +71,55 @@ write_chunk (void *data, char *start, char *end)
   return 0;
 }
 
+int
+stringbuf_writelines (struct stringbuf *s, const char *iptr, size_t isize,
+		      int (*wr) (void *data, char *start, char *end),
+		      void *data,
+		      size_t *nbytes)
+{
+  if (s->len > 2)
+    {
+      char *start, *end;
+      
+      for (start = s->base,
+	     end = memchr (start, '\n', s->base + s->len - start);
+	   end && end < s->base + s->len;
+	   start = end + 1,
+	     end = memchr (start, '\n', s->base + s->len - start))
+	if (end[-1] == '\r')
+	  {
+	    int rc = wr (data, start, end);
+	    if (rc)
+	      return rc;
+	  }
+
+      if (start > s->base)
+	{
+	  if (start < s->base + s->len)
+	    {
+	      int rest = s->base + s->len - start;
+	      memmove (s->base, start, rest);
+	      s->len = rest;
+	    }
+	  else 
+	    s->len = 0;
+	}
+    }
+
+  if (nbytes)
+    *nbytes = isize;
+  return 0;
+}
 
 static int
 _gsasl_write (void *sd, const char *data, size_t size, size_t * nbytes)
 {
   struct anubis_gsasl_stream *s = sd;
-  int rc = _auth_lb_grow (s->lb, data, size);
+  int rc = stringbuf_add (&s->sb, data, size);
   if (rc)
     return rc;
 
-  return _auth_lb_writelines (s->lb, data, size, write_chunk, s, nbytes);
+  return stringbuf_writelines (&s->sb, data, size, write_chunk, s, nbytes);
 }
 
 static int
@@ -105,13 +143,13 @@ _gsasl_read (void *sd, char *data, size_t size, size_t * nbytes)
 	  return rc;
 	}
 
-      rc = _auth_lb_grow (s->lb, buf, sz);
+      rc = stringbuf_add (&s->sb, buf, sz);
       if (rc)
 	return rc;
 
       rc = gsasl_decode (s->sess_ctx,
-			 _auth_lb_data (s->lb),
-			 _auth_lb_level (s->lb), &bufp, &len);
+			 stringbuf_value (&s->sb),
+			 stringbuf_len (&s->sb), &bufp, &len);
     }
   while (rc == GSASL_NEEDS_MORE);
 
@@ -121,13 +159,13 @@ _gsasl_read (void *sd, char *data, size_t size, size_t * nbytes)
   if (len > size)
     {
       memcpy (data, bufp, size);
-      _auth_lb_drop (s->lb);
-      _auth_lb_grow (s->lb, bufp + size, len - size);
+      stringbuf_reset (&s->sb);
+      stringbuf_add (&s->sb, bufp + size, len - size);
       len = size;
     }
   else
     {
-      _auth_lb_drop (s->lb);
+      stringbuf_reset (&s->sb);
       memcpy (data, bufp, len);
     }
   if (nbytes)
@@ -152,9 +190,15 @@ _gsasl_destroy (void *sd)
   struct anubis_gsasl_stream *s = sd;
   if (s->sess_ctx)
     gsasl_finish (s->sess_ctx);
-  _auth_lb_destroy (&s->lb);
+  stringbuf_free (&s->sb);
   free (sd);
   return 0;
+}
+
+static void
+gsasl_nomem (void)
+{
+  anubis_error (EXIT_FAILURE, 0, "%s", _("Not enough memory"));
 }
 
 void
@@ -163,7 +207,7 @@ install_gsasl_stream (Gsasl_session *sess_ctx, NET_STREAM *stream)
   struct anubis_gsasl_stream *s = xmalloc (sizeof *s);
 
   s->sess_ctx = sess_ctx;
-  _auth_lb_create (&s->lb);
+  stringbuf_init (&s->sb, gsasl_nomem);
   s->stream = *stream;
 
   stream_create (stream);

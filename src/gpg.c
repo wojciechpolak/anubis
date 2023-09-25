@@ -2,7 +2,7 @@
    gpg.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2001-2020 The Anubis Team.
+   Copyright (C) 2001-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -22,9 +22,6 @@
 #include "extern.h"
 #include "rcfile.h"
 #include <gpgme.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 struct gpg_struct
 {
@@ -215,12 +212,15 @@ gpg_sign (char *gpg_data)
 }
 
 static gpgme_key_t *
-create_key_array(gpgme_ctx_t ctx, struct obstack *stk)
+create_key_array (gpgme_ctx_t ctx)
 {
   gpgme_key_t tmpkey;
   char *current_key;
   int i, j, len = strlen (gpg.encryption_keys);
-
+  gpgme_key_t *keybase = NULL;
+  size_t keycap = 0;
+  size_t keycnt = 0;
+  
   current_key = xmalloc (len+1);
   for (i = j = 0; i <= len; i++)
     {
@@ -238,7 +238,9 @@ create_key_array(gpgme_ctx_t ctx, struct obstack *stk)
 	      err = gpgme_get_key (ctx, current_key, &tmpkey, 0);
 	      if (err)
 		break;
-	      obstack_grow (stk, &tmpkey, sizeof (tmpkey));
+	      if (keycap == keycnt)
+		keybase = x2nrealloc (keybase, &keycap, sizeof (keybase));
+	      keybase[keycnt++] = tmpkey;
 	      if (options.termlevel == DEBUG)
 		{
 		  gpgme_user_id_t uid;
@@ -271,9 +273,11 @@ create_key_array(gpgme_ctx_t ctx, struct obstack *stk)
 	current_key[j++] = gpg.encryption_keys[i];
     }
   xfree (current_key);
-  tmpkey = NULL;
-  obstack_grow (stk, &tmpkey, sizeof (tmpkey));
-  return obstack_finish (stk);
+
+  if (keycap == keycnt)
+    keybase = x2nrealloc (keybase, &keycap, sizeof (keybase));
+  keybase[keycnt] = NULL;
+  return keybase;
 }
 
 static char *
@@ -283,7 +287,6 @@ gpg_encrypt (char *gpg_data)
   gpgme_data_t in, out;
   char *encrypted_data;
   gpgme_key_t *keyptr;
-  struct obstack stk;
   gpgme_encrypt_result_t result;
   
   fail_if_err (gpgme_new (&ctx));
@@ -292,8 +295,7 @@ gpg_encrypt (char *gpg_data)
   fail_if_err (gpgme_data_new_from_mem (&in, gpg_data, strlen (gpg_data), 0));
   fail_if_err (gpgme_data_new (&out));
 
-  obstack_init (&stk);
-  keyptr = create_key_array (ctx, &stk);
+  keyptr = create_key_array (ctx);
   
   fail_if_err (gpgme_op_encrypt (ctx, keyptr, GPGME_ENCRYPT_ALWAYS_TRUST,
 				 in, out));
@@ -310,7 +312,6 @@ gpg_encrypt (char *gpg_data)
   anubis_gpg_read (out, strlen (gpg_data), &encrypted_data);
   for (; *keyptr; keyptr++)
     gpgme_key_unref (*keyptr);
-  obstack_free (&stk, NULL);
 
   gpgme_data_release (in);
   gpgme_data_release (out);
@@ -376,7 +377,6 @@ gpg_sign_encrypt (char *gpg_data)
   char *p, *se_data;		/* Signed-Encrypted Data */
   gpgme_encrypt_result_t result;
   gpgme_sign_result_t sign_result;
-  struct obstack stk;
   
   fail_if_err (gpgme_new (&ctx));
 
@@ -410,8 +410,7 @@ gpg_sign_encrypt (char *gpg_data)
   fail_if_err (gpgme_data_new_from_mem (&in, gpg_data, strlen (gpg_data), 0));
   fail_if_err (gpgme_data_new (&out));
 
-  obstack_init (&stk);
-  keyptr = create_key_array (ctx, &stk);
+  keyptr = create_key_array (ctx);
   fail_if_err (gpgme_op_encrypt_sign (ctx, keyptr, GPGME_ENCRYPT_ALWAYS_TRUST,
 				      in, out));
   result = gpgme_op_encrypt_result (ctx);
@@ -433,7 +432,7 @@ gpg_sign_encrypt (char *gpg_data)
 
   for (; *keyptr; keyptr++)
     gpgme_key_unref (*keyptr);
-  obstack_free (&stk, NULL);
+
   gpgme_data_release (in);
   gpgme_data_release (out);
   gpgme_release (ctx);

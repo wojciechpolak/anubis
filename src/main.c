@@ -1,6 +1,6 @@
 /*
    GNU Anubis -- an SMTP message submission daemon.
-   Copyright (C) 2001-2020 The Anubis Team.
+   Copyright (C) 2001-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -39,7 +39,7 @@ char *outgoing_mail_rule; /* Name of section for outgoing mail processing */
 char *smtp_command_rule;  /* Name of section for rewriting SMTP commands */
 
 void
-xalloc_die ()
+xnomem (void)
 {
   anubis_error (EXIT_FAILURE, 0, "%s", _("Not enough memory"));
   abort ();

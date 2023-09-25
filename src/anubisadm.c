@@ -1,6 +1,6 @@
 /*
    This file is part of GNU Anubis 
-   Copyright (C) 2004-2020 The Anubis Team.
+   Copyright (C) 2004-2023 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -36,7 +36,7 @@ error (const char *fmt, ...)
 }
 
 void
-xalloc_die ()
+xnomem (void)
 {
   error ("%s", _("Not enough memory"));
   exit (1);
@@ -89,7 +89,7 @@ op_create (int argc, char **argv)
     return 1;
 
   memset (&rec, 0, sizeof (rec));
-  while (getline (&buf, &n, stdin) > 0 && n > 0)
+  while (xgetline (&buf, &n, stdin) > 0 && n > 0)
     {
       char *p;
       int len = strlen (buf);
@@ -242,13 +242,13 @@ op_add_or_modify (char *database, int code, char *errmsg)
       return 1;
     }
   if (!password)
-    password = getpass (_("Password:"));
-  if (!password)
     {
-      error (_("password not specified"));
-      return 1;
+      if (anubis_getpass (_("Password: "), &password))
+	{
+	  error (_("password not specified"));
+	  return 1;
+	}
     }
-
   rc = anubis_db_open (database, anubis_db_rdwr, &db, &err);
 
   if (rc != ANUBIS_DB_SUCCESS)
