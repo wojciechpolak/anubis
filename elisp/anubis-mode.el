@@ -143,6 +143,8 @@
 	      "esmtp-passcode"
 	      "esmtp-realm"
 	      "esmtp-anonymous-token"
+	      "identd-keyfile"
+	      "use-pam"
 	      "mode"
 	      "smtp-greeting-message"
 	      "smtp-help-message"
