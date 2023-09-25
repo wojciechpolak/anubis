@@ -45,7 +45,7 @@ if [ -z "$skip_po" ]; then
     echo "Updating po files"
     rsync --delete --include '*.po' --exclude '*' -Lrtvz \
 	  'translationproject.org::tp/latest/anubis/' $podir
-    find $po -mindepth 1 -maxdepth 1 -name '*.po' |
+    find $podir -mindepth 1 -maxdepth 1 -name '*.po' |
 	sed -e 's|.*/||' -e 's|\.po$||' > $podir/LINGUAS
 fi
 
