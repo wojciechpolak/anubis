@@ -49,6 +49,9 @@ if [ -z "$skip_po" ]; then
 	sed -e 's|.*/||' -e 's|\.po$||' > $podir/LINGUAS
 fi
 
+git submodule init
+git submodule update
+
 mkdir -p m4
 
 if [ ! -f ChangeLog ]; then
