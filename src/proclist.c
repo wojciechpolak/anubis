@@ -111,7 +111,6 @@ sig_child (int code)
   struct process_status ps;
   while ((ps.pid = waitpid (-1, &ps.status, WNOHANG)) > 0)
     list_iterate (process_list, update_process_status, &ps);
-  signal (code, sig_child);
 }
 
 /* Register `pid' in the database. */
@@ -131,8 +130,14 @@ proclist_register (pid_t pid)
 void
 proclist_init ()
 {
+  struct sigaction act;
+
+  act.sa_handler = sig_child;
+  sigemptyset (&act.sa_mask);
+  act.sa_flags = 0;
+  sigaction (SIGCHLD, &act, NULL);
+
   process_list = list_create ();
-  signal (SIGCHLD, sig_child);
 }
 
 /* Return the number of entries resident in the database. */

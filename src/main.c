@@ -45,19 +45,39 @@ xnomem (void)
   abort ();
 }
 
+struct sigdef
+{
+  int signo;
+  void (*sigfun) (int);
+};
+
+static struct sigdef sigdef[] = {
+  { SIGILL, sig_exit },
+  { SIGINT, sig_exit },
+  { SIGTERM, sig_exit },
+  { SIGHUP, sig_exit },
+  { SIGQUIT, sig_exit },
+  { SIGPIPE, SIG_IGN },
+  { SIGALRM, sig_timeout },
+  { 0 }
+};
+
 int
 main (int argc, char *argv[])
 {
   /*
      Signal handling.
    */
-  signal (SIGILL, sig_exit);
-  signal (SIGINT, sig_exit);
-  signal (SIGTERM, sig_exit);
-  signal (SIGHUP, sig_exit);
-  signal (SIGQUIT, sig_exit);
-  signal (SIGPIPE, SIG_IGN);
-  signal (SIGALRM, sig_timeout);
+  int i;
+  struct sigaction act;
+
+  act.sa_flags = 0;
+  sigemptyset (&act.sa_mask);
+  for (i = 0; sigdef[i].signo; i++)
+    {
+      act.sa_handler = sigdef[i].sigfun;
+      sigaction (sigdef[i].signo, &act, NULL);
+    }
 
   /* Native Language Support */
 
