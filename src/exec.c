@@ -154,29 +154,6 @@ make_local_connection (char *exec_path, char **exec_args)
   return str;
 }
   
-/*************************************
- Use an external program, which works
- on standard input and output.
-**************************************/
-
-char *
-external_program (int *rs, char *path, char *src, char *dst, int dstsize)
-{
-  char *ret;
-  wordsplit_t ws;
-
-  if (wordsplit (path, &ws,
-		 WRDSF_NOVAR | WRDSF_NOCMD | WRDSF_SQUEEZE_DELIMS))
-    {
-      anubis_error (EX_SOFTWARE, 0, _("wordsplit failed: %s"),
-		    wordsplit_strerror (&ws));
-    }
-  
-  ret = exec_argv (rs, ws.ws_wordv[0], ws.ws_wordv, src, dst, dstsize);
-  wordsplit_free (&ws);
-  return ret;
-}
-
 char *
 exec_argv (int *rs, char *path, char **argv, char *src, char *dst,
 	   int dstsize)

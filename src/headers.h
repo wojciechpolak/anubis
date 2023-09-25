@@ -650,7 +650,6 @@ void anubis_set_server_mech_list (ANUBIS_LIST list);
 /* xdatabase.c */
 int xdatabase (char *command);
 void xdatabase_capability (ANUBIS_SMTP_REPLY reply);
-void xdatabase_enable (void);
 
 /* md5sum.c */
 int anubis_md5_file (int fd, unsigned char **out_digest, char const **err);

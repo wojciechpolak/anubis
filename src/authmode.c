@@ -437,7 +437,6 @@ anubis_smtp (ANUBIS_USER * usr)
 	  topt |= T_SSL_ONEWAY;
 	}
     }
-  xdatabase_enable ();
   
   return 0;
 }

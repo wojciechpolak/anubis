@@ -22,14 +22,6 @@
 #include "extern.h"
 #include "rcfile.h"
 
-static int xdatabase_active = 0;
-
-void
-xdatabase_enable (void)
-{
-  xdatabase_active = 1;
-}
-
 void
 xdatabase_capability (ANUBIS_SMTP_REPLY reply)
 {
@@ -230,7 +222,7 @@ xdatabase (char *command)
 {
   char *p;
 
-  if (!command || !xdatabase_active)
+  if (!command)
     return 0;
 
   remcrlf (command);

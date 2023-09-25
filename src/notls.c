@@ -22,11 +22,6 @@
 #include "extern.h"
 
 void
-xdatabase_enable (void)
-{
-}
-
-void
 xdatabase_capability (ANUBIS_SMTP_REPLY reply)
 {
 }
