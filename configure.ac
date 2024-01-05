@@ -19,7 +19,7 @@ dnl
 
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.64])
-AC_INIT([GNU Anubis], [4.2.91], [bug-anubis@gnu.org])
+AC_INIT([GNU Anubis], [4.3], [bug-anubis@gnu.org])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_SRCDIR([src/main.c])
