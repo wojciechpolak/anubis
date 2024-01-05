@@ -2,7 +2,7 @@
    rcfile.c
 
    This file is part of GNU Anubis.
-   Copyright (C) 2001-2020 The Anubis Team.
+   Copyright (C) 2001-2024 The Anubis Team.
 
    GNU Anubis is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -578,8 +578,7 @@ control_parser (EVAL_ENV env, int key, ANUBIS_LIST arglist, void *inv_data)
       break;
 
     case KW_MODE:
-      if (anubis_mode != anubis_mda) /* Special case. See comment to
-					KW_LOCAL_MAILER directive, though */
+      if (anubis_mode != anubis_mda)
 	{
 	  if (list_count (arglist) != 1)
 	    eval_error (1, env, _("not enough arguments"));

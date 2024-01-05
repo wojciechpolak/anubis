@@ -307,7 +307,7 @@ service.
 @item Proxy
 A program, which goes between @acronym{MUA} and @acronym{MTA}. It can
 be used as a gateway to the outside world, while using a firewall. In
-this case a host under the firewall sends data to the proxy server,
+this case a host behind the firewall sends data to the proxy server,
 which in turn forwards it to a server outside, receives its
 replies, and passes them back to the internal host.
 
@@ -347,13 +347,13 @@ up to 3.6.2.
 
 @item auth
 This mode uses @acronym{SMTP} AUTH mechanism to authenticate incoming
-connections. @xref{Pixie-Dixie}, original description of this mode.
+connections. @xref{Pixie-Dixie}, the original description of this mode.
 @end table
 
-Proxy mode is special in that no authentication is performed when
-running it.  The remaining two modes require authentication.  Both
-have their advantages and deficiencies, which you need to weigh
-carefully before choosing which one to use. They are discussed below:
+Proxy mode is special in that no authentication is performed in it.
+The remaining two modes require authentication.  Both have their
+advantages and deficiencies, which you need to weigh carefully before
+choosing which one to use. They are discussed below:
 
 @heading Transparent (@samp{traditional}) mode.
 
@@ -370,7 +370,7 @@ Section}).
 Advantages:
 @enumerate
 @item Relative simplicity. No user database is necessary.
-@item Authentication is performed immediately after connecting.
+@item Authentication is performed immediately after connection is established.
 @end enumerate
 
 @heading Auth mode.
@@ -476,24 +476,23 @@ passes to authorization state.
 In this state, it first determines the user @acronym{ID}
 (@acronym{UID}) to switch to. If the @code{ACCOUNT} field
 is not null, its value is used as account login name. If it is null,
-@command{anubis} uses the privileges of the @dfn{default not
-privileged user}, 
-specified by @code{user-notprivileged} statement in the global
-configuration file (@pxref{Security Settings, user-notprivileged}).
+@command{anubis} will use privileges of the @dfn{default not
+privileged user}, specified by @code{user-notprivileged} statement in
+the global configuration file (@pxref{Security Settings, user-notprivileged}).
 
 The final step is to parse the @dfn{user configuration file}. If
-@code{CONFIG} field is not null, its value is used as absolute
-path to the configuration file. Otherwise, @command{anubis} searches
-for file @file{~/.anubisrc} (where @samp{~} denotes home directory
-for the system account obtained on the previous step) and if such
-a file exists, loads it.
+@code{CONFIG} field is not null, its value is the absolute
+pathname of the user configuration file. Otherwise, @command{anubis}
+searches for file @file{~/.anubisrc} (where @samp{~} denotes home
+directory for the system account obtained on the previous step) and if
+such a file exists, loads it.
 
 @node Database URL
 @section Database URL
 
 Anubis database is identified by its @dfn{URL}, or @dfn{Universal
 Resource Locator}. A @code{URL} consists of following elements
-(square brackets enclose optional elements):
+(square brackets enclose optional ones):
 
 @smallexample
 @var{proto}://[[@var{user}[:@var{password}]@@]@var{host}]/@var{path}[@var{params}]
@@ -505,7 +504,7 @@ where:
 @table @var
 @item proto
 Specifies the database @dfn{protocol}. The protocol describes how
-the database is to be accessed. In a way, it may be regarded as
+to access the database. In a way, it may be regarded as
 specifying the database @dfn{type}. Currently, GNU Anubis supports
 the following database protocols:
 
@@ -700,8 +699,8 @@ option files}).
 is organized in groups, each group beginning with the group name in
 square brackets on a separate line.  Within a group, each non-empty
 line consists of a MySQL option name, optionally followed by an equals
-sign and the value.  By default, the values from the @samp{anubis}
-group are read.
+sign and the value.  By default, settings from the group named @samp{anubis}
+are read.
 
 Two additional parameters are provided to fine-tune this behavior:
 
@@ -3549,19 +3548,17 @@ description of MDA mode}
 
 @enumerate 1
 @item
-The mode is triggered by @option{--mode=mda} in the command line.
-It cannot be specified in configuration file. @FIXME{Why?}
+The mode is enabled by the @option{--mode=mda} option in the command
+line or @code{mode mda} setting in @code{CONTROL} section of the
+@command{anubis} configuration file.  It the @option{--mode=mda}
+option is used, the @code{mode} setting in the configuration file
+is ignored.
 
 @item
-Anubis uses local mailer to actually deliver messages. The invocation
-line of the local mailer must be given via @option{--local-mta}
-command line option. The @option{local-mta} settings (if any) (@pxref{Basic
-Settings}) are ignored. @FIXME{Is it really so? And, again: why?}
-
-The local mailer invocation line can contain meta-variables
-@code{%sender} and @code{%recipient}, which will be replaced by
-the actual sender and recipient email addresses before starting
-the mailer.
+Anubis uses local mailer to actually deliver messages. The mailer
+invocation line can contain meta-variables @code{%sender} and
+@code{%recipient}, which will be replaced by the actual sender and
+recipient email addresses before starting the mailer.
 
 @item
 A special option @option{--from} may be used in Anubis command line.
