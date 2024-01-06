@@ -2,6 +2,7 @@ Makefile
 Makefile.in
 arg-nonnull.h
 c++defs.h
+compile
 config.guess
 config.rpath
 config.sub
